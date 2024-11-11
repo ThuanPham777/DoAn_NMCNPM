@@ -1,0 +1,36 @@
+[
+  {
+    "id": 1,
+    "name": "Giải Bóng đá ngoại hạng anh",
+    "time": "2024-2025",
+    "logo": "/assets/img/tournaments/picture01.png",
+    "teams": [
+      {
+        "id": 1,
+        "name": "MC",
+        "logo": "/assets/img/teams/picture01.png",
+        "stadium": "eithad",
+        "coach": "pep guardiola"
+      },
+      {
+        "id": 2,
+        "name": "Manchester United",
+        "logo": "/assets/img/teams/picture02.png",
+        "stadium": "Old Trafford",
+        "coach": "Erik ten Hag"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "World cup",
+    "time": "2015-2016",
+    "logo": "/assets/img/tournaments/picture02.png"
+  },
+  {
+    "id": 3,
+    "name": "VLeage",
+    "time": "2015-2016",
+    "logo": "/assets/img/tournaments/picture03.png"
+  }
+]

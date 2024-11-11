@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1",
+    "jerseyNumber": "7",
+    "fullName": "Cristiano Ronaldo",
+    "dateOfBirth": "05/02/1985",
+    "playerType": "Ngoài nước",
+    "hometown": "Madeira, Portugal"
+  },
+  {
+    "id": "2",
+    "jerseyNumber": "10",
+    "fullName": "Lionel Messi",
+    "dateOfBirth": "24/06/1987",
+    "playerType": "Ngoài nước",
+    "hometown": "Rosario, Argentina"
+  },
+  {
+    "id": "3",
+    "jerseyNumber": "11",
+    "fullName": "Neymar Jr",
+    "dateOfBirth": "05/02/1992",
+    "playerType": "Ngoài nước",
+    "hometown": "Mogi das Cruzes, Brazil"
+  },
+  {
+    "id": "4",
+    "jerseyNumber": "9",
+    "fullName": "Robert Lewandowski",
+    "dateOfBirth": "21/08/1988",
+    "playerType": "Ngoài nước",
+    "hometown": "Warsaw, Poland"
+  },
+  {
+    "id": "5",
+    "jerseyNumber": "1",
+    "fullName": "Manuel Neuer",
+    "dateOfBirth": "27/03/1986",
+    "playerType": "Ngoài nước",
+    "hometown": "Gelsenkirchen, Germany"
+  }
+]
