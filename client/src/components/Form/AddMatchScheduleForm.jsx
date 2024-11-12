@@ -22,7 +22,7 @@ const AddMatchScheduleForm = () => {
   };
 
   return (
-    <div className='max-w-md mx-auto p-6 shadow-lg rounded-lg bg-gray-50'>
+    <div className='max-w-md mx-auto p-6 shadow-lg rounded-lg bg-white'>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className='mb-4'>
           <label className='block font-semibold'>Vòng</label>

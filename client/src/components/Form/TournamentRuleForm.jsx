@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 
 const TournamentRuleForm = () => {
-  const user = ''; // Xác định user nếu có
+  const user = 'admin'; // Xác định user nếu có
 
   const {
     register,

@@ -20,6 +20,14 @@ import TournamentRules from './pages/TournamentRules';
 import CreateTournament from './pages/CreateTournament';
 import AddMatchSchedule from './pages/AddMatchSchedule';
 import UpdateMatchResult from './pages/UpdateMatchResult';
+import MatchResultDetail from './pages/MatchResultDetail';
+import TeamDetail from './pages/TeamDetail';
+import AddTeam from './pages/Manager/AddTeam';
+import MyTeam from './pages/Manager/MyTeam';
+import MyTeamDetail from './pages/Manager/MyTeamDetail';
+import AddSoccer from './pages/Manager/AddSoccer';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Layout() {
   return (
@@ -42,67 +50,104 @@ function Layout() {
 
 function App() {
   return (
-    <div className='w-full min-h-screen bg-[#f3f4f6]'>
-      <Router>
-        <Routes>
-          <Route
-            path='/login'
-            element={<Login />}
-          />
-          <Route
-            path='/register'
-            element={<Register />}
-          />
+    <>
+      <div>
+        <ToastContainer />
+      </div>
+      <div className='w-full min-h-screen bg-[#f3f4f6]'>
+        <Router>
+          <Routes>
+            <Route
+              path='/login'
+              element={<Login />}
+            />
+            <Route
+              path='/register'
+              element={<Register />}
+            />
 
-          <Route element={<Layout />}>
-            <Route
-              path='/'
-              element={<Home />}
-            />
-            <Route
-              path='/team'
-              element={<Team />}
-            />
-            <Route
-              path='/match-schedule'
-              element={<MatchSchedule />}
-            />
-            <Route
-              path='/round-result'
-              element={<RoundResult />}
-            />
-            <Route
-              path='/rank'
-              element={<Rank />}
-            />
-            <Route
-              path='/top-soccers'
-              element={<TopSoccers />}
-            />
-            <Route
-              path='/search-soccers'
-              element={<SearchSoccers />}
-            />
-            <Route
-              path='/tournament-rule'
-              element={<TournamentRules />}
-            />
-            <Route
-              path='/create-tournament'
-              element={<CreateTournament />}
-            />
-            <Route
-              path='/add-match-schedule'
-              element={<AddMatchSchedule />}
-            />
-            <Route
-              path='/update-match-result/:id'
-              element={<UpdateMatchResult />}
-            />
-          </Route>
-        </Routes>
-      </Router>
-    </div>
+            <Route element={<Layout />}>
+              <Route
+                path='/'
+                element={<Home />}
+              />
+              <Route
+                path='/tournament-detail/:tournamentId'
+                element={<Home />}
+              />
+              <Route
+                path='/team'
+                element={<Team />}
+              />
+              <Route
+                path='/team-detail/:teamId'
+                element={<TeamDetail />}
+              />
+              <Route
+                path='/match-schedule'
+                element={<MatchSchedule />}
+              />
+              <Route
+                path='/round-result'
+                element={<RoundResult />}
+              />
+              <Route
+                path='/rank'
+                element={<Rank />}
+              />
+              <Route
+                path='/top-soccers'
+                element={<TopSoccers />}
+              />
+              <Route
+                path='/search-soccers'
+                element={<SearchSoccers />}
+              />
+              <Route
+                path='/tournament-rule'
+                element={<TournamentRules />}
+              />
+              <Route
+                path='/create-tournament'
+                element={<CreateTournament />}
+              />
+              <Route
+                path='/add-match-schedule'
+                element={<AddMatchSchedule />}
+              />
+              <Route
+                path='/update-match-result/:id'
+                element={<UpdateMatchResult />}
+              />
+              <Route
+                path='/match-result-detail/:id'
+                element={<MatchResultDetail />}
+              />
+              <Route
+                path='/add-team'
+                element={<AddTeam />}
+              />
+              <Route
+                path='/my-team'
+                element={<MyTeam />}
+              />
+              <Route
+                path='/my-team-detail/:id'
+                element={<MyTeamDetail />}
+              />
+              <Route
+                path='/edit-soccer/:playerId'
+                element={<AddSoccer />}
+              />
+              <Route
+                path='/add-soccer'
+                element={<AddSoccer />}
+              />
+            </Route>
+          </Routes>
+        </Router>
+      </div>
+    </>
   );
 }
 

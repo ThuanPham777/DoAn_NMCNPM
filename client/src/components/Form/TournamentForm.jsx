@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 const TournamentForm = () => {
-  const user = '';
+  const user = 'admin';
   const navigate = useNavigate();
 
   const {

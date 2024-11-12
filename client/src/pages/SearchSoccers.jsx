@@ -26,8 +26,8 @@ const SearchSoccers = () => {
   }, []);
 
   const handleSearch = (value) => {
-    const filtered = data.filter((entry) =>
-      entry.fullName.toLowerCase().includes(value.toLowerCase())
+    const filtered = data.filter((player) =>
+      player.fullName.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredData(filtered);
   };
@@ -36,16 +36,26 @@ const SearchSoccers = () => {
     <div>
       <h1 className='text-2xl font-semibold mb-6'>Tra cứu cầu thủ</h1>
 
+      {/* Search bar */}
       <Search
-        placeholder='Search by name'
-        enterButton='Search'
+        placeholder='Tìm kiếm cầu thủ...'
+        style={{ width: 300, marginBottom: 16 }}
         onSearch={handleSearch}
-        style={{ width: 200, marginBottom: 16 }}
+        allowClear
       />
+
+      {/* Table for displaying players */}
       <Table
         columns={columns}
-        dataSource={filteredData}
-        pagination={{ pageSize: 5 }}
+        dataSource={filteredData.map((player, index) => ({
+          key: index,
+          jerseyNumber: player.jerseyNumber,
+          fullName: player.fullName,
+          dateOfBirth: player.dateOfBirth,
+          playerType: player.playerType,
+          hometown: player.hometown,
+        }))}
+        pagination={{ pageSize: 5, showSizeChanger: true }}
       />
     </div>
   );

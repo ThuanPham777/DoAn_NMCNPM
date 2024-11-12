@@ -1,27 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Table } from 'antd';
+import { Button, Table, Spin } from 'antd';
 import { IoFlagOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const MatchSchedule = () => {
-  const user = 'admin';
+  const { selectedTournament } = useSelector((state) => state.tournament);
   const [data, setData] = useState([]);
   const [currentRound, setCurrentRound] = useState(1);
   const navigate = useNavigate();
 
-  // Load data from rounds.json
   useEffect(() => {
-    fetch('/assets/data/rounds.json')
-      .then((response) => response.json())
-      .then((jsonData) => setData(jsonData))
-      .catch((error) => console.error('Error loading data:', error));
-  }, []);
+    if (selectedTournament && selectedTournament.rounds) {
+      setData(selectedTournament.rounds);
+    }
+  }, [selectedTournament]); // Chạy lại khi selectedTournament thay đổi
+
+  // Show a loading spinner if selectedTournament is not yet available
+  if (!selectedTournament) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        <Spin size='large' />
+      </div>
+    );
+  }
 
   // Filter matches for the current round
   const currentMatches =
-    data.find((round) => round.round === currentRound)?.matches || [];
+    data.find((round) => parseInt(round.id) === currentRound)?.matches || [];
 
-  // Table columns for match data
+  // Table columns for match data, adding time column
   const columns = [
     {
       title: 'Đội 1',
@@ -39,24 +47,34 @@ const MatchSchedule = () => {
       key: 'location',
     },
     {
-      title: 'Thời gian',
-      dataIndex: 'date',
-      key: 'date',
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      render: (_, record) =>
-        user && (
-          <Button
-            onClick={() => navigate(`/update-match-result/${record.id}`)}
-            className='text-blue-500 hover:underline'
-          >
-            View
-          </Button>
-        ),
+      title: 'Thời gian', // Cột thời gian mới
+      key: 'time',
+      render: (_, record) => {
+        const date = record.date; // Giả sử ngày là thuộc tính 'date'
+        const time = record.time; // Giả sử giờ là thuộc tính 'time'
+        // Format ngày và giờ thành chuỗi 'DD/MM/YYYY HHhMM'
+        const formattedDateTime = `${date} ${time}`;
+        return formattedDateTime;
+      },
     },
   ];
+
+  // Add action column if user is logged in
+  const user = 'admin'; // Add actual user logic here
+  if (user) {
+    columns.push({
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Button
+          onClick={() => navigate(`/update-match-result/${record.id}`)}
+          className='text-blue-500 hover:underline'
+        >
+          View
+        </Button>
+      ),
+    });
+  }
 
   // Handle pagination
   const handleNext = () => {
@@ -73,7 +91,7 @@ const MatchSchedule = () => {
         <h1 className='text-2xl font-bold mb-8'>Lịch thi đấu</h1>
         {user && (
           <button
-            className='border px-4 py-2 rounded-full outline-none bg-[#56FF61]'
+            className='text-white border px-4 py-2 rounded-full outline-none bg-[#56FF61] hover:bg-[#3eeb4a]'
             onClick={() => navigate('/add-match-schedule')}
           >
             Thêm lịch thi đấu
@@ -86,12 +104,14 @@ const MatchSchedule = () => {
         size={48}
         className='mx-auto mb-8'
       />
+
       <Table
         columns={columns}
         dataSource={currentMatches}
         rowKey='id'
         pagination={false}
       />
+
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
         <Button
           onClick={handlePrevious}

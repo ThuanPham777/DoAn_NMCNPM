@@ -54,7 +54,24 @@ const linkData = [
   },
 ];
 
+const managerLinkData = [
+  {
+    label: 'Tạo đội bóng',
+    link: '/add-team',
+    icon: <IoMdAddCircleOutline />,
+  },
+  {
+    label: 'Đội bóng của tôi',
+    link: '/my-team',
+    icon: <HiOutlineUserGroup />,
+  },
+];
+
 const Sidebar = () => {
+  const user = {
+    role: 'manager', // admin, manager, guest
+  };
+
   const [openIndex, setOpenIndex] = useState(null);
 
   const toggleSubLinks = (index) => {
@@ -62,9 +79,9 @@ const Sidebar = () => {
   };
 
   return (
-    <div className=' p-4'>
+    <div className='p-4'>
       <div className='w-full mt-16'>
-        {/* Home Link */}
+        {/* Home Link  có ở 3 quyền admin, manager, guest*/}
         <NavLink
           to='/'
           className='flex items-center gap-2 p-2 mb-4 hover:bg-gray-700 rounded'
@@ -74,15 +91,34 @@ const Sidebar = () => {
           <span>Trang chủ</span>
         </NavLink>
 
-        {/* Link tạo giải đáu */}
-        <NavLink
-          to='/create-tournament'
-          className='flex items-center gap-2 p-2 mb-4 hover:bg-gray-700 rounded'
-          activeClassName='bg-gray-700'
-        >
-          <IoMdAddCircleOutline />
-          <span>Tạo giải đấu</span>
-        </NavLink>
+        {/* Link tạo giải đấu chỉ có admin */}
+        {user?.role === 'admin' && (
+          <NavLink
+            to='/create-tournament'
+            className='flex items-center gap-2 p-2 mb-4 hover:bg-gray-700 rounded'
+            activeClassName='bg-gray-700'
+          >
+            <IoMdAddCircleOutline />
+            <span>Tạo giải đấu</span>
+          </NavLink>
+        )}
+
+        {/* Link quản lý đội bóng */}
+        {user?.role === 'manager' &&
+          managerLinkData.map((item, index) => {
+            return (
+              <NavLink
+                to={item.link}
+                className='flex items-center gap-2 p-2 mb-4 hover:bg-gray-700 rounded'
+                style={({ isActive }) => ({
+                  backgroundColor: isActive ? '#4a5568' : '',
+                })}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
 
         {/* Sidebar Categories */}
         <div className='w-full flex flex-col items-start'>

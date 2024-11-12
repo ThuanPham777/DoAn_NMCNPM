@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Table } from 'antd';
 import { IoFlagOutline } from 'react-icons/io5';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const RoundResult = () => {
+  const { selectedTournament } = useSelector((state) => state.tournament);
   const [data, setData] = useState([]);
   const [currentRound, setCurrentRound] = useState(1);
+  const navigate = useNavigate();
 
-  // Load data from rounds.json
   useEffect(() => {
-    fetch('/assets/data/rounds.json')
-      .then((response) => response.json())
-      .then((jsonData) => setData(jsonData))
-      .catch((error) => console.error('Error loading data:', error));
-  }, []);
+    if (selectedTournament && selectedTournament.rounds) {
+      setData(selectedTournament.rounds);
+    }
+  }, [selectedTournament]); // Chạy lại khi selectedTournament thay đổi
 
   // Filter matches for the current round
   const currentMatches =
-    data.find((round) => round.round === currentRound)?.matches || [];
+    data.find((round) => parseInt(round.id) === currentRound)?.matches || [];
+
+  console.log('data: ', currentMatches);
 
   // Table columns for match data
   const columns = [
@@ -56,6 +60,11 @@ const RoundResult = () => {
     if (currentRound > 1) setCurrentRound(currentRound - 1);
   };
 
+  // Row click handler to navigate to MatchResult
+  const onRowClick = (record) => {
+    navigate(`/match-result-detail/${record.id}`);
+  };
+
   return (
     <div>
       <h1 className='text-2xl font-semibold mb-8'>Vòng {currentRound}</h1>
@@ -68,6 +77,9 @@ const RoundResult = () => {
         dataSource={currentMatches}
         rowKey='id'
         pagination={false}
+        onRow={(record) => ({
+          onClick: () => onRowClick(record),
+        })}
       />
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
         <Button

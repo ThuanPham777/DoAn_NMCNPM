@@ -1,33 +1,40 @@
-// Team.js
+// src/components/Team.js
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import TeamCard from '../components/Team/TeamCard';
+import { Spin } from 'antd';
 
 const Team = () => {
+  const { selectedTournament } = useSelector((state) => state.tournament);
   const [teams, setTeams] = useState([]);
 
-  // Gọi API lấy dữ liệu danh sách đội bóng
+  // Gọi API để lấy dữ liệu danh sách đội bóng thuộc mùa giải đã chọn
   useEffect(() => {
     const fetchTeams = async () => {
+      if (!selectedTournament) return; // Nếu không có mùa giải đã chọn, không làm gì cả
+
       try {
-        // Fetching data using fetch API
-        const response = await fetch('/assets/data/teams.json');
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        // Parse the response as JSON
-        const data = await response.json();
-
-        // Set the fetched data to state
-        setTeams(data);
+        // const response = await fetch(
+        //   `/api/tournaments/${selectedTournament.id}/teams`
+        // );
+        // const data = await response.json();
+        // setTeams(data.teams); // Lưu danh sách đội bóng vào state
+        setTeams(selectedTournament.teams);
       } catch (error) {
-        console.error('Error fetching Teams:', error);
+        console.error('Error fetching teams:', error);
       }
     };
 
     fetchTeams();
-  }, []);
+  }, [selectedTournament]); // Khi selectedTournament thay đổi thì gọi lại API
+
+  if (!teams) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        <Spin size='large' />
+      </div>
+    );
+  }
 
   return (
     <div className='container mx-auto p-4'>
