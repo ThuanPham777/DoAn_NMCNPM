@@ -10,7 +10,7 @@ BEGIN
         IF EXISTS (
             SELECT 1
     FROM [User]
-    WHERE UserID = @UserID AND Role IN ('Manager', 'Admin')
+    WHERE UserID = @UserID AND Role IN ('Manager')
         )
         BEGIN
         -- Kiểm tra xem TeamID và TournamentID có tồn tại không
