@@ -17,9 +17,9 @@ const AuthForm = ({ isRegister }) => {
   const onSubmit = async (data) => {
     try {
       const url = isRegister
-        ? 'http://localhost:5000/api/auth/register'
-        : 'http://localhost:5000/api/auth/login';
-      // fetch the aip
+        ? 'http://localhost:3000/api/auth/signup'
+        : 'http://localhost:3000/api/auth/login';
+      // fetch the api
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -31,6 +31,7 @@ const AuthForm = ({ isRegister }) => {
       if (!response.ok)
         throw new Error(isRegister ? 'Registration failed!' : 'Login failed!');
       const result = await response.json();
+      console.log('result: ' + JSON.stringify(result));
 
       if (isRegister) {
         alert(`Registration successful! Welcome, ${result.user.username}`);
@@ -38,7 +39,7 @@ const AuthForm = ({ isRegister }) => {
         alert(`Login successful! Welcome back, ${result.user.username}`);
       }
 
-      navigate(isRegister ? '/login' : '/dashboard');
+      navigate(isRegister ? '/login' : '/');
     } catch (error) {
       console.error(error);
       alert(isRegister ? 'Registration failed!' : 'Login failed!');
@@ -75,7 +76,8 @@ const AuthForm = ({ isRegister }) => {
                   Name
                 </label>
                 <input
-                  {...register('name', { required: 'Name is required' })}
+                  {...register('username', { required: 'Name is required' })}
+                  type='name'
                   className='w-full p-2 border border-gray-300 rounded'
                   placeholder='Enter your name'
                 />

@@ -1,15 +1,14 @@
 CREATE PROCEDURE insertUser
-    @UserName VARCHAR(50),
-    @Email VARCHAR(50),
-    @Password VARCHAR(50),
-    @Role NVARCHAR(50)
+    @UserName VARCHAR(100),
+    @Email VARCHAR(100),
+    @Password VARCHAR(100),
+    @Role NVARCHAR(100)
 AS
 BEGIN
     BEGIN TRY
         -- Begin transaction
         BEGIN TRANSACTION;
 
-        -- Insert new user
         INSERT INTO [User]
         (UserName, Email, Password, Role)
     VALUES
@@ -18,8 +17,12 @@ BEGIN
         -- Commit transaction
         COMMIT TRANSACTION;
 
-        -- Return success message
-        SELECT 'User inserted successfully.' AS Message;
+        -- Return success message and User details
+        SELECT
+        UserID, UserName, Email, Role
+    FROM [User]
+    WHERE Email = @Email;
+
     END TRY
     BEGIN CATCH
         -- Rollback transaction in case of error

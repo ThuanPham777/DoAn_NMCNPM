@@ -4,50 +4,52 @@ const db = require('../../../config/db');
 require('dotenv').config();
 
 exports.signup = async (req, res) => {
-  const { username, email, password, passwordConfirm } = req.body;
+  const { username, email, password } = req.body;
 
-  if (!username || !email || !password || !passwordConfirm) {
+  if (!username || !email || !password) {
     return res.status(400).json({ message: 'All fields are required' });
   }
-  // Validate email format
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ message: 'Invalid email format' });
   }
 
-  // Kiểm tra password và passwordConfirm có khớp không
-  if (password !== passwordConfirm) {
-    return res.status(400).json({ message: 'Passwords do not match' });
-  }
-
   let pool;
   try {
-    // Kết nối đến cơ sở dữ liệu
     pool = await db();
 
-    // Kiểm tra email đã tồn tại chưa
+    // Check if email already exists
     const checkUser = await pool
       .request()
-      .input('email', email)
-      .query('SELECT * FROM [User] WHERE Email = @email');
+      .input('Email', email)
+      .query('SELECT * FROM [User] WHERE Email = @Email');
 
     if (checkUser.recordset.length > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Gọi stored procedure để thêm người dùng
-    await pool
+    // Call the insertUser stored procedure
+    const result = await pool
       .request()
       .input('UserName', username)
       .input('Email', email)
       .input('Password', hashedPassword)
       .input('Role', 'Guest')
-      .execute('insertUser'); // Gọi stored procedure
+      .execute('insertUser');
 
-    res.status(201).json({ message: 'User created successfully' });
+    // Fetch the newly created user to include in the response
+    const user = result.recordset[0]; // User data will be returned here
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: 'Failed to retrieve user information' });
+    }
+
+    res.status(201).json({ message: 'User created successfully', user });
   } catch (err) {
     console.error('Error during signup:', err);
     res.status(500).json({ message: 'Internal server error' });
@@ -55,37 +57,29 @@ exports.signup = async (req, res) => {
     if (pool) await pool.close();
   }
 };
-
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
-  // Kiểm tra dữ liệu đầu vào
   if (!email || !password) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
   let pool;
   try {
-    // Kết nối database
+    // Kết nối đến database
     pool = await db();
 
-    // Gọi stored procedure `login`
-    const result = await pool
-      .request()
-      .input('Email', email)
-      .input('Password', password) // Gửi mật khẩu gốc (stored procedure xử lý)
-      .execute('login');
+    // Gọi stored procedure để lấy thông tin người dùng
+    const result = await pool.request().input('Email', email).execute('login');
 
-    // Lấy kết quả trả về từ stored procedure
-    const recordset = result.recordset;
-
-    if (recordset.length === 0 || recordset[0].ErrorMessage) {
+    if (result.recordset.length === 0) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Lấy thông tin người dùng nếu login thành công
-    const user = result.recordset[0]; // Lấy thông tin người dùng
-    const isPasswordValid = await bcrypt.compare(password, user.Password); // Kiểm tra mật khẩu
+    const user = result.recordset[0];
+
+    // So sánh mật khẩu người dùng nhập vào với mật khẩu đã mã hóa trong cơ sở dữ liệu
+    const isPasswordValid = await bcrypt.compare(password, user.Password);
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' });
