@@ -31,12 +31,13 @@ const AuthForm = ({ isRegister }) => {
       if (!response.ok)
         throw new Error(isRegister ? 'Registration failed!' : 'Login failed!');
       const result = await response.json();
+      localStorage.setItem('token', result.token);
       console.log('result: ' + JSON.stringify(result));
 
       if (isRegister) {
-        alert(`Registration successful! Welcome, ${result.user.username}`);
+        alert(`Registration successful! Welcome, ${result.data.user.username}`);
       } else {
-        alert(`Login successful! Welcome back, ${result.user.username}`);
+        alert(`Login successful! Welcome back, ${result.data.user.username}`);
       }
 
       navigate(isRegister ? '/login' : '/');

@@ -28,6 +28,8 @@ import MyTeamDetail from './pages/Manager/MyTeamDetail';
 import AddSoccer from './pages/Manager/AddSoccer';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { fetchUserInfo } from './redux/slices/authSlice';
 
 function Layout() {
   return (
@@ -49,6 +51,13 @@ function Layout() {
 }
 
 function App() {
+  const dispatch = useDispatch();
+
+  // Fetch user info when component mounts
+  React.useEffect(() => {
+    dispatch(fetchUserInfo());
+  }, [dispatch]);
+
   return (
     <>
       <div>

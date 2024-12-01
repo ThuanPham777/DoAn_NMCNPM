@@ -9,6 +9,7 @@ import { PiRankingLight } from 'react-icons/pi';
 import { CiStar, CiSearch } from 'react-icons/ci';
 import { MdOutlineRuleFolder } from 'react-icons/md';
 import { IoMdAddCircleOutline } from 'react-icons/io';
+import { useSelector } from 'react-redux';
 
 const linkData = [
   {
@@ -68,9 +69,8 @@ const managerLinkData = [
 ];
 
 const Sidebar = () => {
-  const user = {
-    role: 'manager', // admin, manager, guest
-  };
+  const user = useSelector((state) => state.user.user);
+  console.log('user in sidebar: ' + user);
 
   const [openIndex, setOpenIndex] = useState(null);
 

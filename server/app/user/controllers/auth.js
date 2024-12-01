@@ -1,7 +1,46 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('../../../config/db');
+const AppError = require('../../../utils/appError');
 require('dotenv').config();
+
+const signToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+};
+
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user.UserID);
+
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  // Send cookie to the client
+  res.cookie('jwt', token, cookieOptions);
+
+  // Remove password from output (not secure)
+  user.Password = undefined;
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user: {
+        id: user.UserId,
+        username: user.UserName,
+        email: user.Email,
+        role: user.Role,
+      },
+    },
+  });
+};
 
 exports.signup = async (req, res) => {
   const { username, email, password } = req.body;
@@ -41,7 +80,7 @@ exports.signup = async (req, res) => {
       .execute('insertUser');
 
     // Fetch the newly created user to include in the response
-    const user = result.recordset[0]; // User data will be returned here
+    const user = result.recordset[0];
 
     if (!user) {
       return res
@@ -49,7 +88,9 @@ exports.signup = async (req, res) => {
         .json({ message: 'Failed to retrieve user information' });
     }
 
-    res.status(201).json({ message: 'User created successfully', user });
+    // Sử dụng createSendToken để tạo và gửi token
+    console.log('created:', JSON.stringify(user, null, 2));
+    createSendToken(user, 201, res);
   } catch (err) {
     console.error('Error during signup:', err);
     res.status(500).json({ message: 'Internal server error' });
@@ -57,6 +98,7 @@ exports.signup = async (req, res) => {
     if (pool) await pool.close();
   }
 };
+
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -66,7 +108,6 @@ exports.login = async (req, res) => {
 
   let pool;
   try {
-    // Kết nối đến database
     pool = await db();
 
     // Gọi stored procedure để lấy thông tin người dùng
@@ -85,34 +126,107 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Tạo JWT token
-    const token = jwt.sign(
-      { userId: user.UserID, role: user.Role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
-    // Trả về phản hồi thành công
-    res.json({
-      message: 'Logged in successfully',
-      token,
-      user: {
-        id: user.UserID,
-        name: user.UserName,
-        email: user.Email,
-        role: user.Role,
-      },
-    });
+    // Sử dụng createSendToken để tạo và gửi token
+    createSendToken(user, 200, res);
   } catch (err) {
     console.error('Error during login:', err);
     res.status(500).json({ message: 'Internal server error' });
   } finally {
-    if (pool) await pool.close(); // Đảm bảo kết nối được đóng
+    if (pool) await pool.close();
+  }
+};
+
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
+};
+
+// Hàm kiểm tra người dùng tồn tại
+const getUserById = async (userId) => {
+  let pool;
+  try {
+    pool = await db(); // Kết nối đến cơ sở dữ liệu
+    const result = await pool
+      .request()
+      .input('UserID', userId)
+      .query('SELECT * FROM [User] WHERE UserID = @UserID');
+
+    // Kiểm tra nếu không tìm thấy người dùng
+    if (result.recordset.length === 0) {
+      return null;
+    }
+
+    return result.recordset[0]; // Trả về người dùng nếu tồn tại
+  } catch (err) {
+    console.error('Error querying database:', err);
+  } finally {
+    if (pool) await pool.close();
+  }
+};
+
+const verifyToken = (token) => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(decoded);
+      }
+    });
+  });
+};
+// Middleware protect
+exports.protect = async (req, res, next) => {
+  // 1) Lấy token và kiểm tra nếu có
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
+  console.log('token: ' + token);
+
+  if (!token) {
+    return next(
+      new AppError('You are not logged in! Please log in to get access', 401)
+    );
+  }
+
+  try {
+    // 2) Giải mã token
+    const decoded = await verifyToken(token);
+    console.log(decoded); // Kiểm tra xem decoded có giá trị không
+
+    // 3) Kiểm tra xem người dùng có tồn tại không
+    const currentUser = await getUserById(decoded.id);
+
+    if (!currentUser) {
+      return next(
+        new AppError('The user belonging to this token no longer exists.', 401)
+      );
+    }
+
+    // 4) Gán người dùng vào req.user để tiếp tục xử lý
+    req.user = currentUser;
+
+    // Grant access to the protected route
+    next();
+  } catch (error) {
+    console.error('JWT verification error:', error.message);
+    return next(new AppError('Invalid or expired token.', 403));
   }
 };
 
 exports.getUserInfo = async (req, res) => {
-  const { userId } = req.user; // Lấy userId từ token
+  const { UserID } = req.user; // Lấy userId từ token (đã được gán trong middleware protect)
+  console.log(UserID);
 
   let pool;
   try {
@@ -122,7 +236,7 @@ exports.getUserInfo = async (req, res) => {
     // Truy vấn để lấy thông tin người dùng
     const result = await pool
       .request()
-      .input('UserID', userId)
+      .input('UserID', UserID)
       .query(
         'SELECT UserID, UserName, Email, Role FROM [User] WHERE UserID = @UserID'
       );
@@ -134,6 +248,7 @@ exports.getUserInfo = async (req, res) => {
     }
 
     res.json(user); // Trả về thông tin người dùng
+    console.log(user);
   } catch (err) {
     console.error('Error fetching user info:', err);
     res.status(500).json({ message: 'Internal server error' });

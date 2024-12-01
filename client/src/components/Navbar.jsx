@@ -1,9 +1,22 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiLogIn, FiLogOut } from 'react-icons/fi';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchLogout, fetchUserInfo } from '../redux/slices/authSlice';
 
 const Navbar = () => {
-  const user = '';
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.user.user);
+
+  const handleLogout = async () => {
+    try {
+      await dispatch(fetchLogout()); // Gọi action logout
+      navigate('/login'); // Chuyển hướng đến trang login
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
+  };
 
   return (
     <div className='flex justify-between items-center px-4 py-6 border-b shadow-md'>
@@ -11,6 +24,7 @@ const Navbar = () => {
       <Link
         to={user ? '/' : '/login'}
         className='flex items-center gap-1 text-gray-600 hover:text-gray-900'
+        onClick={user ? handleLogout : null} // Gọi handleLogout khi người dùng bấm vào "Đăng xuất"
       >
         {user ? <FiLogOut /> : <FiLogIn />}
         <span>{user ? 'Đăng xuất' : 'Đăng nhập'}</span>

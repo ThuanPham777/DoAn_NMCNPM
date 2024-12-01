@@ -2,20 +2,18 @@ const express = require('express');
 const connectToDB = require('./config/db'); // Import database connection
 const authRoutes = require('./app/user/routes/auth');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const app = express();
+app.use(cookieParser());
 
 app.use(
   cors({
     origin: 'http://localhost:5173', // Set the frontend URL
-    methods: ['GET', 'POST', 'OPTIONS'], // Specify allowed methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+    credentials: true, // Cho phép gửi cookie
   })
 );
 
-app.use(express.json());
-
-// Middleware to parse JSON requests
 app.use(express.json());
 
 (async () => {
