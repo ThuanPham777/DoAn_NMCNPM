@@ -70,7 +70,6 @@ const managerLinkData = [
 
 const Sidebar = () => {
   const user = useSelector((state) => state.user.user);
-  console.log('user in sidebar: ' + user);
 
   const [openIndex, setOpenIndex] = useState(null);
 
@@ -92,7 +91,7 @@ const Sidebar = () => {
         </NavLink>
 
         {/* Link tạo giải đấu chỉ có admin */}
-        {user?.role === 'admin' && (
+        {user?.Role === 'Admin' && (
           <NavLink
             to='/create-tournament'
             className='flex items-center gap-2 p-2 mb-4 hover:bg-gray-700 rounded'
@@ -104,7 +103,7 @@ const Sidebar = () => {
         )}
 
         {/* Link quản lý đội bóng */}
-        {user?.role === 'manager' &&
+        {user?.Role === 'Manager' &&
           managerLinkData.map((item, index) => {
             return (
               <NavLink

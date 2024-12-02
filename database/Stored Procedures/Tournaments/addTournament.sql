@@ -2,7 +2,7 @@ CREATE PROCEDURE addTournament
     @TournamentName NVARCHAR(50),
     @StartDate DATE,
     @EndDate DATE,
-    @TournamentLogo NVARCHAR(50)
+    @TournamentLogo VARCHAR(50)
 AS
 BEGIN
     BEGIN TRY
@@ -10,7 +10,7 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Insert tournament data into the tournaments table
-        INSERT INTO Tournaments
+        INSERT INTO Tournament
         (TournamentName, StartDate, EndDate, TournamentLogo)
     VALUES
         (@TournamentName, @StartDate, @EndDate, @TournamentLogo);
@@ -39,10 +39,3 @@ BEGIN
         THROW;
     END CATCH
 END;
-
-EXECUTE addTournament
-    @TournamentName = 'Summer Cup',
-    @StartDate = '2024-06-01',
-    @EndDate = '2024-06-15',
-    @TournamentLogo = 'summer_cup_logo.png';
-

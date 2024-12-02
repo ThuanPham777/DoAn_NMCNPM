@@ -1,10 +1,10 @@
-// TournamentForm.js
 import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 const TournamentForm = () => {
-  const user = 'admin';
+  const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
 
   const {
@@ -17,33 +17,29 @@ const TournamentForm = () => {
 
   // Hàm xử lý submit form
   const handleFormSubmit = async (data) => {
-    // Gọi API gửi dữ liệu
     const formData = new FormData();
-    formData.append('tournamentName', data.tournamentName);
-    formData.append('startDate', data.startDate);
-    formData.append('endDate', data.endDate);
+    formData.append('TournamentName', data.tournamentName);
+    formData.append('StartDate', data.startDate);
+    formData.append('EndDate', data.endDate);
 
     // Nếu có ảnh, thêm vào FormData
     if (image) {
-      formData.append('image', image);
+      formData.append('TournamentLogo', image);
     }
 
     try {
       // Gửi request POST tới API
-      const response = await fetch(
-        'https://your-backend-api-url.com/tournament',
-        {
-          method: 'POST',
-          body: formData, // Gửi dữ liệu dưới dạng FormData
-        }
-      );
+      const response = await fetch('http://localhost:3000/api/tournament/add', {
+        method: 'POST',
+        body: formData, // Gửi dữ liệu dưới dạng FormData
+      });
 
       if (response.ok) {
         const responseData = await response.json();
         console.log('API Response:', responseData);
 
-        // After update tournament info
-        navigate('/home');
+        // Sau khi thêm thành công, điều hướng tới trang khác
+        navigate('/'); // Hoặc trang bạn muốn chuyển hướng đến
       } else {
         console.error('Error submitting form:', response.statusText);
       }
@@ -64,11 +60,11 @@ const TournamentForm = () => {
     <div className='max-w-lg mx-auto p-6 shadow-lg rounded-lg bg-white'>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div className='mb-4'>
-          <label className='block'>Tên mùa giải</label>
+          <label className='block'>Tên giải đấu</label>
           <Controller
             name='tournamentName'
             control={control}
-            rules={{ required: 'Tên mùa giải là bắt buộc' }}
+            rules={{ required: 'Tên giải đấu là bắt buộc' }}
             render={({ field }) => (
               <input
                 {...field}

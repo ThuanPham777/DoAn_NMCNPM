@@ -4,6 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import logo from '../../assets/img/logo.jpg';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
+import { useDispatch } from 'react-redux';
+import { fetchUserInfo } from '../../redux/slices/authSlice';
 
 const AuthForm = ({ isRegister }) => {
   const {
@@ -13,6 +15,7 @@ const AuthForm = ({ isRegister }) => {
   } = useForm(); // react hook for form submission
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const onSubmit = async (data) => {
     try {
@@ -32,8 +35,8 @@ const AuthForm = ({ isRegister }) => {
         throw new Error(isRegister ? 'Registration failed!' : 'Login failed!');
       const result = await response.json();
       localStorage.setItem('token', result.token);
+      dispatch(fetchUserInfo());
       console.log('result: ' + JSON.stringify(result));
-
       if (isRegister) {
         alert(`Registration successful! Welcome, ${result.data.user.username}`);
       } else {

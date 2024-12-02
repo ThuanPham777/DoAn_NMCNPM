@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiLogIn, FiLogOut } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchLogout, fetchUserInfo } from '../redux/slices/authSlice';
+import { fetchLogout } from '../redux/slices/authSlice';
 
 const Navbar = () => {
   const dispatch = useDispatch();

@@ -1,9 +1,6 @@
-create procedure getAllTournaments
-as
-begin
-    select *
-    from Tournament
-
-end;
-
-execute getAllTournaments
+CREATE PROCEDURE getAllTournaments
+AS
+BEGIN
+    SELECT *
+    FROM Tournament;
+END;

@@ -6,10 +6,7 @@ import { useSelector } from 'react-redux';
 import RegisterTournamentModal from '../components/Form/RegisterTournamentModal';
 
 const Home = () => {
-  const user = {
-    role: 'manager', // Vai trò của người dùng, giả sử là manager
-    teams: ['Team A', 'Team B', 'Team C'], // Danh sách đội bóng của người dùng
-  };
+  const user = useSelector((state) => state.user.user);
 
   const { selectedTournament } = useSelector((state) => state.tournament);
   const [tournaments, setTournaments] = useState([]);
@@ -21,12 +18,13 @@ const Home = () => {
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const response = await fetch('/assets/data/tournaments.json');
+        const response = await fetch('http://localhost:3000/api/tournament');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        const data = await response.json();
-        setTournaments(data);
+        const result = await response.json();
+        console.log(result.data);
+        setTournaments(result.data);
       } catch (error) {
         console.error('Error fetching tournaments:', error);
       }
@@ -58,7 +56,8 @@ const Home = () => {
     <div className='container mx-auto p-4'>
       <div className='flex justify-between items-center mb-8'>
         <h2 className='text-2xl font-bold'>Danh sách các giải đấu</h2>
-        {user?.role === 'manager' && (
+        {/* Kiểm tra xem người dùng có role là 'manager' mới hiển thị nút đăng ký */}
+        {user?.Role === 'Manager' && (
           <button
             className='text-white border px-4 py-2 rounded-full outline-none bg-[#56FF61] hover:bg-[#3eeb4a]'
             onClick={handleRegisterClick}
@@ -78,12 +77,13 @@ const Home = () => {
       />
 
       <div className='flex gap-8 flex-wrap'>
-        {tournaments.map((tournament) => (
-          <TournamentCard
-            key={tournament.id}
-            tournament={tournament}
-          />
-        ))}
+        {tournaments.length > 0 &&
+          tournaments.map((tournament) => (
+            <TournamentCard
+              key={tournament.TournamentID}
+              tournament={tournament}
+            />
+          ))}
       </div>
     </div>
   );

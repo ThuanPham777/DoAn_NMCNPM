@@ -1,8 +1,10 @@
 const express = require('express');
 const connectToDB = require('./config/db'); // Import database connection
 const authRoutes = require('./app/user/routes/auth');
+const tournamentRoutes = require('./app/tournament/routes/tournament');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const app = express();
 app.use(cookieParser());
@@ -15,6 +17,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 (async () => {
   let pool;
@@ -33,5 +36,6 @@ app.use(express.json());
 // user api
 
 app.use('/api/auth', authRoutes);
+app.use('/api/tournament', tournamentRoutes);
 
 module.exports = app;
