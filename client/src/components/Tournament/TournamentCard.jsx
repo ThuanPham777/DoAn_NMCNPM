@@ -9,21 +9,21 @@ const TournamentCard = ({ tournament }) => {
   const navigate = useNavigate();
 
   // Gọi API để lấy chi tiết mùa giải
-  useEffect(() => {
-    const fetchTournamentDetails = async () => {
-      try {
-        const response = await fetch(
-          `http://localhost:3000/api/tournament/${tournament.TournamentID}`
-        );
-        const data = await response.json();
-        // xử lý dữ liệu nếu cần
-      } catch (error) {
-        console.error('Error fetching tournament details:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchTournamentDetails = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         `http://localhost:3000/api/tournament/${tournament.TournamentID}`
+  //       );
+  //       const data = await response.json();
+  //       // xử lý dữ liệu nếu cần
+  //     } catch (error) {
+  //       console.error('Error fetching tournament details:', error);
+  //     }
+  //   };
 
-    fetchTournamentDetails();
-  }, [tournament.TournamentID]);
+  //   fetchTournamentDetails();
+  // }, [tournament.TournamentID]);
 
   // Hàm xử lý khi nhấn vào thẻ mùa giải
   const handleClick = () => {

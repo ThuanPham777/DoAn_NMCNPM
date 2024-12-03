@@ -19,4 +19,10 @@ router.get(
 );
 
 router.get('/my-teams', authController.protect, teamController.getAllMyTeams);
+
+router.post(
+  '/add-teams-tournament',
+  authController.protect,
+  teamController.addTeamsInTournament
+);
 module.exports = router;

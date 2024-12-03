@@ -27,6 +27,7 @@ const MyTeam = () => {
         // Parse the response as JSON
         const result = await response.json();
         setMyTeams(result.data); // Lưu dữ liệu vào state myTeams
+        console.log('myTeams: ' + result.data);
       } catch (error) {
         console.error('Error fetching MyTeams:', error);
       }

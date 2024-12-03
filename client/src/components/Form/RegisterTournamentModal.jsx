@@ -5,19 +5,20 @@ const RegisterTournamentModal = ({
   onClose,
   onRegister,
   teams,
-  tournamentName,
+  selectedTournament,
 }) => {
   // State để lưu danh sách các đội được chọn
+  console.log('RegisterTournament temas', teams);
   const [selectedTeams, setSelectedTeams] = useState([]);
   const [loading, setLoading] = useState(false); // Để hiển thị trạng thái đang tải
   const [error, setError] = useState(''); // Để hiển thị lỗi nếu có
 
   // Hàm xử lý sự kiện khi người dùng chọn hoặc bỏ chọn đội
   const handleSelectionChange = (e) => {
-    const value = e.target.value;
+    const value = parseInt(e.target.value); // Chuyển giá trị về số
     setSelectedTeams((prevSelectedTeams) => {
       if (prevSelectedTeams.includes(value)) {
-        return prevSelectedTeams.filter((team) => team !== value);
+        return prevSelectedTeams.filter((teamID) => teamID !== value);
       } else {
         return [...prevSelectedTeams, value];
       }
@@ -36,16 +37,21 @@ const RegisterTournamentModal = ({
 
     try {
       // Gọi API gửi dữ liệu đến server
-      const response = await fetch('/api/register-tournament', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tournamentName,
-          selectedTeams,
-        }),
-      });
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        'http://localhost:3000/api/team/add-teams-tournament',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            TournamentID: selectedTournament.TournamentID,
+            TeamIDs: selectedTeams,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Đăng ký giải đấu không thành công');
@@ -72,27 +78,28 @@ const RegisterTournamentModal = ({
     <div className='fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50'>
       <div className='bg-white p-6 rounded-lg shadow-lg w-96'>
         <h3 className='text-xl font-bold text-center mb-4'>
-          Đăng ký tham gia giải đấu {tournamentName || ''}
+          Đăng ký tham gia giải đấu {selectedTournament.TournamentName || ''}
         </h3>
         <h4 className='text-lg mb-2'>Danh sách đội bóng của bạn:</h4>
 
         {/* Danh sách checkbox để chọn các đội bóng */}
         <div className='space-y-2 mb-4'>
-          {teams.map((team, index) => (
-            <label
-              key={index}
-              className='block'
-            >
-              <input
-                type='checkbox'
-                value={team}
-                checked={selectedTeams.includes(team)}
-                onChange={handleSelectionChange}
-                className='mr-2'
-              />
-              {team}
-            </label>
-          ))}
+          {teams.length > 0 &&
+            teams.map((team, index) => (
+              <label
+                key={team.TeamID}
+                className='block'
+              >
+                <input
+                  type='checkbox'
+                  value={team.TeamID} // Chỉ truyền ID làm value
+                  checked={selectedTeams.includes(team.TeamID)} // Kiểm tra dựa trên ID
+                  onChange={handleSelectionChange}
+                  className='mr-2'
+                />
+                {team.TeamName} {/* Hiển thị tên đội */}
+              </label>
+            ))}
         </div>
 
         {/* Hiển thị lỗi nếu có */}

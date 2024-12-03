@@ -10,6 +10,7 @@ const Home = () => {
 
   const { selectedTournament } = useSelector((state) => state.tournament);
   const [tournaments, setTournaments] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false); // State để điều khiển Modal
 
   const navigate = useNavigate();
@@ -30,7 +31,34 @@ const Home = () => {
       }
     };
 
+    const token = localStorage.getItem('token');
+    const fetchMyTeams = async () => {
+      try {
+        // Fetching data using fetch API
+        const response = await fetch(
+          'http://localhost:3000/api/team/my-teams',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            method: 'GET',
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        // Parse the response as JSON
+        const result = await response.json();
+        setTeams(result.data); // Lưu dữ liệu vào state myTeams
+        console.log('teams: ' + result.data);
+      } catch (error) {
+        console.error('Error fetching MyTeams:', error);
+      }
+    };
     fetchTournaments();
+    fetchMyTeams();
   }, []);
 
   const handleRegisterClick = () => {
@@ -47,7 +75,7 @@ const Home = () => {
 
   const handleConfirmRegistration = () => {
     toast.success(
-      `Đăng ký tham gia giải đấu ${selectedTournament.name} thành công!`
+      `Đăng ký tham gia giải đấu ${selectedTournament.TournamentName} thành công!`
     );
     setIsModalOpen(false);
   };
@@ -72,8 +100,8 @@ const Home = () => {
         isOpen={isModalOpen}
         onClose={handleCancelModal}
         onRegister={handleConfirmRegistration}
-        teams={user.teams}
-        tournamentName={selectedTournament?.name}
+        teams={teams}
+        selectedTournament={selectedTournament}
       />
 
       <div className='flex gap-8 flex-wrap'>
