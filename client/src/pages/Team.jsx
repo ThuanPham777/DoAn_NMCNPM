@@ -5,28 +5,28 @@ import TeamCard from '../components/Team/TeamCard';
 import { Spin } from 'antd';
 
 const Team = () => {
-  const { selectedTournament } = useSelector((state) => state.tournament);
   const [teams, setTeams] = useState([]); // team attend tournament
 
   // Gọi API để lấy dữ liệu danh sách đội bóng thuộc mùa giải đã chọn
   useEffect(() => {
     const fetchTeams = async () => {
-      if (!selectedTournament) return; // Nếu không có mùa giải đã chọn, không làm gì cả
-
       try {
         const response = await fetch(
-          `/api/tournaments/${selectedTournament.id}/teams`
+          'http://localhost:3000/api/team/teams-attend-tournament',
+          {
+            method: 'GET',
+          }
         );
-        const data = await response.json();
-        setTeams(data.teams); // Lưu danh sách đội bóng vào state
-        setTeams(selectedTournament.teams);
+        const result = await response.json();
+        console.log('danh sách các đội bóng', result.data); // Log dữ liệu lấy từ API
+        setTeams(result.data); // Lưu danh sách đội bóng vào state
       } catch (error) {
         console.error('Error fetching teams:', error);
       }
     };
 
     fetchTeams();
-  }, [selectedTournament]); // Khi selectedTournament thay đổi thì gọi lại API
+  }, []); // Khi selectedTournament thay đổi thì gọi lại API
 
   if (!teams) {
     return (
@@ -42,7 +42,7 @@ const Team = () => {
       <div className='flex gap-8 flex-wrap'>
         {teams.map((team) => (
           <TeamCard
-            key={team.id}
+            key={team.TeamID}
             team={team}
           />
         ))}
