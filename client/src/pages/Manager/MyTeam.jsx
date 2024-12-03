@@ -4,29 +4,29 @@ import MyTeamCard from '../../components/Team/MyTeamCard';
 
 const MyTeam = () => {
   const [myTeams, setMyTeams] = useState([]);
-
   // Gọi API lấy dữ liệu danh sách đội bóng
   useEffect(() => {
+    const token = localStorage.getItem('token');
     const fetchMyTeams = async () => {
       try {
         // Fetching data using fetch API
-        const response = await fetch('/assets/data/users.json');
+        const response = await fetch(
+          'http://localhost:3000/api/team/my-teams',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            method: 'GET',
+          }
+        );
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
 
         // Parse the response as JSON
-        const data = await response.json();
-        // find user is manager
-        const user = data.find(
-          (user) =>
-            user.role === 'manager' && user.email === 'alice.smith@example.com'
-        );
-
-        //console.log('user: ', user);
-
-        setMyTeams(user.teams);
+        const result = await response.json();
+        setMyTeams(result.data); // Lưu dữ liệu vào state myTeams
       } catch (error) {
         console.error('Error fetching MyTeams:', error);
       }
@@ -41,7 +41,7 @@ const MyTeam = () => {
       <div className='flex gap-8 flex-wrap'>
         {myTeams.map((myTeam) => (
           <MyTeamCard
-            key={myTeam.id}
+            key={myTeam.UserID}
             myTeam={myTeam}
           />
         ))}

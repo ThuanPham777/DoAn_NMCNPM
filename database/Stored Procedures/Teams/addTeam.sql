@@ -43,9 +43,3 @@ BEGIN
     END CATCH
 END;
 
-EXECUTE addTeam
-    @TeamName = 'Real',
-    @Stadium = 'Bernabell',
-    @Coach = 'Calosti',
-    @TeamLogo = 'real.png',
-    @UserID = 1;

@@ -2,6 +2,7 @@ const express = require('express');
 const connectToDB = require('./config/db'); // Import database connection
 const authRoutes = require('./app/user/routes/auth');
 const tournamentRoutes = require('./app/tournament/routes/tournament');
+const teamRoutes = require('./app/teams/routes/team');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -37,5 +38,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tournament', tournamentRoutes);
+app.use('/api/team/', teamRoutes);
 
 module.exports = app;

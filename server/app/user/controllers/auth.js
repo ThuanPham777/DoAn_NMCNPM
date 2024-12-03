@@ -191,8 +191,6 @@ exports.protect = async (req, res, next) => {
     token = req.cookies.jwt;
   }
 
-  console.log('token: ' + token);
-
   if (!token) {
     return next(
       new AppError('You are not logged in! Please log in to get access', 401)
@@ -215,6 +213,7 @@ exports.protect = async (req, res, next) => {
 
     // 4) Gán người dùng vào req.user để tiếp tục xử lý
     req.user = currentUser;
+    //console.log('req.user', req.user);
 
     // Grant access to the protected route
     next();

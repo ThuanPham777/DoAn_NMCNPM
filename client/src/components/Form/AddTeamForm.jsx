@@ -15,16 +15,22 @@ const AddTeamForm = () => {
   // Handle form submission
   const handleFormSubmit = async (data) => {
     const formData = new FormData();
-    formData.append('teamName', data.teamName);
-    formData.append('stadium', data.stadium);
-    formData.append('coach', data.coach);
+    formData.append('TeamName', data.teamName);
+    formData.append('Stadium', data.stadium);
+    formData.append('Coach', data.coach);
 
     if (logo) {
-      formData.append('logo', logo);
+      formData.append('TeamLogo', logo);
     }
 
+    const token = localStorage.getItem('token');
+    //console.log('token', token);
+
     try {
-      const response = await fetch('https://your-backend-api-url.com/team', {
+      const response = await fetch('http://localhost:3000/api/team/add', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         method: 'POST',
         body: formData,
       });
@@ -32,7 +38,7 @@ const AddTeamForm = () => {
       if (response.ok) {
         const responseData = await response.json();
         console.log('API Response:', responseData);
-        navigate('/home');
+        navigate('/');
       } else {
         console.error('Error submitting form:', response.statusText);
       }
