@@ -4,11 +4,20 @@ import { Table, Input } from 'antd';
 const { Search } = Input;
 
 const columns = [
-  { title: 'Số áo', dataIndex: 'jerseyNumber', key: 'jerseyNumber' },
-  { title: 'Họ và tên', dataIndex: 'fullName', key: 'fullName' },
-  { title: 'Ngày sinh', dataIndex: 'dateOfBirth', key: 'dateOfBirth' },
-  { title: 'Loại cầu thủ', dataIndex: 'playerType', key: 'playerType' },
-  { title: 'Quê quán', dataIndex: 'hometown', key: 'hometown' },
+  { title: 'Số áo', dataIndex: 'JerseyNumber', key: 'JerseyNumber' },
+  { title: 'Họ và tên', dataIndex: 'PlayerName', key: 'PlayerName' },
+  {
+    title: 'Ngày sinh',
+    dataIndex: 'DateOfBirth',
+    key: 'DateOfBirth',
+    render: (text) => {
+      // Format the DateOfBirth
+      const date = new Date(text); // Convert ISO string to Date object
+      return date.toLocaleDateString('vi-VN'); // Format to Vietnamese date
+    },
+  },
+  { title: 'Loại cầu thủ', dataIndex: 'PlayerType', key: 'PlayerType' },
+  { title: 'Quê quán', dataIndex: 'HomeTown', key: 'HomeTown' },
 ];
 
 const SearchSoccers = () => {
@@ -16,18 +25,18 @@ const SearchSoccers = () => {
   const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
-    fetch('/assets/data/soccers.json')
+    fetch('http://localhost:3000/api/player')
       .then((response) => response.json())
-      .then((jsonData) => {
-        setData(jsonData);
-        setFilteredData(jsonData); // Initially show all data
+      .then((result) => {
+        setData(result.data);
+        setFilteredData(result.data); // Initially show all data
       })
       .catch((error) => console.error('Error loading data:', error));
   }, []);
 
   const handleSearch = (value) => {
     const filtered = data.filter((player) =>
-      player.fullName.toLowerCase().includes(value.toLowerCase())
+      player.PlayerName.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredData(filtered);
   };
@@ -49,13 +58,13 @@ const SearchSoccers = () => {
         columns={columns}
         dataSource={filteredData.map((player, index) => ({
           key: index,
-          jerseyNumber: player.jerseyNumber,
-          fullName: player.fullName,
-          dateOfBirth: player.dateOfBirth,
-          playerType: player.playerType,
-          hometown: player.hometown,
+          JerseyNumber: player.JerseyNumber,
+          PlayerName: player.PlayerName,
+          DateOfBirth: player.DateOfBirth,
+          PlayerType: player.PlayerType,
+          HomeTown: player.HomeTown,
         }))}
-        pagination={{ pageSize: 5, showSizeChanger: true }}
+        pagination={{ pageSize: 10, showSizeChanger: false }}
       />
     </div>
   );

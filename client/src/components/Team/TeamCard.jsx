@@ -8,7 +8,9 @@ const TeamCard = ({ team }) => {
   return (
     <div
       className='w-56 h-80 bg-gray-200 p-4 rounded-md shadow-md flex flex-col items-center cursor-pointer'
-      onClick={() => navigate(`/team-detail/${team.TeamID}`)}
+      onClick={() =>
+        navigate(`/team-detail/${team.TeamID}`, { state: { team } })
+      }
     >
       <img
         src={`http://localhost:3000/uploads/teams/${team.TeamLogo}`}

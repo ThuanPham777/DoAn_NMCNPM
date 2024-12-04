@@ -1,79 +1,78 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Table, Input, Button } from 'antd';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Table, Input, Button, Spin, Alert } from 'antd';
 
 const { Search } = Input;
 
 const MyTeamDetail = () => {
-  const { id } = useParams();
-  const [team, setTeam] = useState(null);
+  const { TeamID } = useParams();
+
+  //console.log('TeamID', TeamID);
   const [players, setPlayers] = useState([]);
+  const location = useLocation();
+  const { myTeam } = location.state || {}; // Lấy dữ liệu `team`
+  //console.log('myTeam', myTeam);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchTeamData = async () => {
+    const fetchPlayersOfTeam = async () => {
       try {
-        const response = await fetch('/assets/data/users.json');
-        const data = await response.json();
-
-        const user = data.find(
-          (user) =>
-            user.role === 'manager' && user.email === 'alice.smith@example.com'
+        const response = await fetch(
+          `http://localhost:3000/api/player/team/${TeamID}`
         );
-
-        const selectedTeam = user?.teams.find(
-          (team) => team.id === parseInt(id)
-        );
-
-        if (selectedTeam) {
-          setTeam(selectedTeam);
-          setPlayers(selectedTeam.soccers);
-        }
+        if (!response.ok) throw new Error('Error fetching players');
+        const result = await response.json();
+        //console.log('Players of teams: ', result.data);
+        setPlayers(result.data);
       } catch (error) {
-        console.error('Error fetching team details:', error);
+        console.error(error);
       }
     };
-
-    fetchTeamData();
-  }, [id]);
-
-  if (!team) return <div>Loading...</div>;
+    fetchPlayersOfTeam();
+  }, [TeamID]);
 
   const columns = [
     {
       title: 'Số áo',
-      dataIndex: 'jerseyNumber',
-      key: 'jerseyNumber',
+      dataIndex: 'JerseyNumber',
+      key: 'JerseyNumber',
     },
     {
       title: 'Họ và tên',
-      dataIndex: 'fullName',
-      key: 'fullName',
+      dataIndex: 'PlayerName',
+      key: 'PlayerName',
     },
     {
       title: 'Ngày sinh',
-      dataIndex: 'dateOfBirth',
-      key: 'dateOfBirth',
+      dataIndex: 'DateOfBirth',
+      key: 'DateOfBirth',
+      render: (text) => {
+        // Format the DateOfBirth
+        const date = new Date(text); // Convert ISO string to Date object
+        return date.toLocaleDateString('vi-VN'); // Format to Vietnamese date
+      },
     },
     {
       title: 'Loại cầu thủ',
-      dataIndex: 'playerType',
-      key: 'playerType',
+      dataIndex: 'PlayerType',
+      key: 'PlayerType',
     },
     {
       title: 'Quê quán',
-      dataIndex: 'hometown',
-      key: 'hometown',
+      dataIndex: 'HomeTown',
+      key: 'HomeTown',
     },
     {
       title: 'Thao tác',
       key: 'actions',
-      render: (text, record) => (
+      render: (_, record) => (
         <Button
           type='link'
-          onClick={() => navigate(`/edit-soccer/${record.key}`)}
+          onClick={() =>
+            navigate(`/my-team-detail/${TeamID}/edit-soccer/${record.key}`)
+          }
         >
-          View
+          Sửa
         </Button>
       ),
     },
@@ -81,21 +80,22 @@ const MyTeamDetail = () => {
 
   return (
     <div className='container mx-auto p-4'>
-      <div className='flex justify-between items-center'>
+      <div className='flex justify-between items-center mb-6'>
         <div>
-          <h2 className='text-2xl font-bold mb-4'>Đội: {team.name}</h2>
-          <p className='text-lg mb-2'>Sân Nhà: {team.stadium}</p>
-          <p className='text-lg mb-6'>HLV: {team.coach}</p>
+          <h2 className='text-2xl font-bold'>Đội: {myTeam.TeamName}</h2>
+          <p className='text-lg'>Sân Nhà: {myTeam.Stadium}</p>
+          <p className='text-lg'>HLV: {myTeam.Coach}</p>
         </div>
-        <button
-          className='text-white border px-4 py-2 rounded-full outline-none bg-[#56FF61] hover:bg-[#3eeb4a]'
-          onClick={() => navigate('/add-soccer')}
+        <Button
+          type='primary'
+          className='bg-[#56FF61] hover:bg-[#3eeb4a]'
+          onClick={() => navigate(`/my-team-detail/${TeamID}/add-soccer`)}
         >
           Thêm cầu thủ
-        </button>
+        </Button>
       </div>
 
-      <h3 className='text-xl font-semibold mt-6 mb-4'>Danh sách cầu thủ</h3>
+      <h3 className='text-xl font-semibold mb-4'>Danh sách cầu thủ</h3>
 
       <div className='mb-4'>
         <Search
@@ -103,12 +103,12 @@ const MyTeamDetail = () => {
           style={{ width: 300 }}
           onSearch={(value) => {
             if (value) {
-              const filteredPlayers = team.soccers.filter((player) =>
-                player.fullName.toLowerCase().includes(value.toLowerCase())
+              const filteredPlayers = players.filter((player) =>
+                player.PlayerName.toLowerCase().includes(value.toLowerCase())
               );
               setPlayers(filteredPlayers);
             } else {
-              setPlayers(team.soccers);
+              setPlayers(players); // Hoặc fetch lại nếu cần.
             }
           }}
           allowClear
@@ -117,11 +117,11 @@ const MyTeamDetail = () => {
 
       <Table
         columns={columns}
-        dataSource={players.map((player, index) => ({
-          key: player.id, // Assuming each player has a unique `id`
+        dataSource={players.map((player) => ({
+          key: player.PlayerID,
           ...player,
         }))}
-        pagination={{ pageSize: 10, showSizeChanger: true }}
+        pagination={{ pageSize: 10, showSizeChanger: false }}
       />
     </div>
   );

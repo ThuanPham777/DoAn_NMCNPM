@@ -79,7 +79,7 @@ function App() {
                 element={<Team />}
               />
               <Route
-                path='/team-detail/:teamId'
+                path='/team-detail/:TeamID'
                 element={<TeamDetail />}
               />
               <Route
@@ -131,15 +131,15 @@ function App() {
                 element={<MyTeam />}
               />
               <Route
-                path='/my-team-detail/:id'
+                path='/my-team-detail/:TeamID'
                 element={<MyTeamDetail />}
               />
               <Route
-                path='/edit-soccer/:playerId'
+                path='/my-team-detail/:TeamID/edit-soccer/:PlayerID'
                 element={<AddSoccer />}
               />
               <Route
-                path='/add-soccer'
+                path='/my-team-detail/:TeamID/add-soccer'
                 element={<AddSoccer />}
               />
             </Route>

@@ -3,40 +3,32 @@ import { useParams } from 'react-router-dom';
 import AddSoccerForm from '../../components/Form/AddSoccerForm';
 
 const AddSoccer = () => {
-  const { playerId } = useParams();
+  const { TeamID } = useParams();
+  console.log('TeamID in addSoccer: ', TeamID);
+  const { PlayerID } = useParams(); // Lấy PlayerID từ URL params
+  console.log('useparams: ', useParams());
   const [player, setPlayer] = useState(null);
 
   useEffect(() => {
     const fetchPlayerData = async () => {
+      if (!PlayerID) return; // Nếu không có PlayerID, không cần gọi API
       try {
-        const response = await fetch('/assets/data/users.json');
-        const data = await response.json();
-
-        const user = data.find(
-          (user) =>
-            user.role === 'manager' && user.email === 'alice.smith@example.com'
+        const response = await fetch(
+          `http://localhost:3000/api/player/${PlayerID}`
         );
-        console.log('User: ' + user.teams);
-
-        const selectedTeam = user?.teams
-          .flatMap((team) => team.soccers)
-          .find((soccer) => soccer.id === playerId);
-
-        console.log('playerId: ' + playerId);
-        console.log('selectedTeam: ', selectedTeam);
-
-        if (selectedTeam) {
-          setPlayer(selectedTeam);
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Player details:', result.data);
+          setPlayer(result.data); // Cập nhật state player
+        } else {
+          console.error('Failed to fetch player details:', response.statusText);
         }
       } catch (error) {
         console.error('Error fetching player details:', error);
       }
     };
-
-    if (playerId) {
-      fetchPlayerData();
-    }
-  }, [playerId]);
+    fetchPlayerData();
+  }, [PlayerID]); // Chỉ chạy khi PlayerID thay đổi
 
   return (
     <div>
@@ -44,7 +36,10 @@ const AddSoccer = () => {
         {player ? 'Cập nhật thông tin cầu thủ' : 'Thêm cầu thủ'}
       </h1>
       <div>
-        <AddSoccerForm player={player} />
+        <AddSoccerForm
+          player={player}
+          TeamID={TeamID}
+        />
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ const MyTeam = () => {
       <div className='flex gap-8 flex-wrap'>
         {myTeams.map((myTeam) => (
           <MyTeamCard
-            key={myTeam.UserID}
+            key={myTeam.TeamID}
             myTeam={myTeam}
           />
         ))}

@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../../utils';
 
-const AddSoccerForm = ({ player }) => {
+const AddSoccerForm = ({ player, TeamID }) => {
   const navigate = useNavigate();
   const {
     control,
@@ -17,34 +17,36 @@ const AddSoccerForm = ({ player }) => {
   // Populate form fields if editing an existing player
   useEffect(() => {
     if (player) {
-      setValue('fullName', player.fullName);
+      setValue('PlayerName', player.PlayerName);
       setValue(
-        'dateOfBirth',
-        player.dateOfBirth ? formatDate(player.dateOfBirth) : ''
+        'DateOfBirth',
+        player.DateOfBirth ? formatDate(player.DateOfBirth) : ''
       );
-      setValue('jerseyNumber', player.jerseyNumber);
-      setValue('hometown', player.hometown);
-      setValue('playerType', player.playerType);
+      setValue('JerseyNumber', player.JerseyNumber);
+      setValue('HomeTown', player.HomeTown);
+      setValue('PlayerType', player.PlayerType);
     }
   }, [player, setValue]);
 
   // Handle form submission
   const handleFormSubmit = async (data) => {
     const formData = new FormData();
-    formData.append('fullName', data.fullName);
-    formData.append('dateOfBirth', data.dateOfBirth);
-    formData.append('jerseyNumber', data.jerseyNumber);
-    formData.append('hometown', data.hometown);
-    formData.append('playerType', data.playerType);
+    formData.append('PlayerName', data.PlayerName);
+    formData.append('DateOfBirth', data.DateOfBirth);
+    formData.append('JerseyNumber', data.JerseyNumber);
+    formData.append('HomeTown', data.HomeTown);
+    formData.append('PlayerType', data.PlayerType);
 
     if (image) {
-      formData.append('image', image);
+      formData.append('ProfileImg', image);
     }
 
     try {
       const url = player
-        ? `https://your-backend-api-url.com/soccer/${player.id}` // Edit endpoint
-        : 'https://your-backend-api-url.com/soccer'; // Add endpoint
+        ? `http://localhost:3000/api/player/team/${TeamID}/edit/${player.PlayerID}` // Edit endpoint
+        : `http://localhost:3000/api/player/team/${TeamID}/add`; // Add endpoint
+
+      console.log('url', url);
 
       const method = player ? 'PUT' : 'POST'; // Use PUT for editing, POST for adding
 
@@ -56,7 +58,7 @@ const AddSoccerForm = ({ player }) => {
       if (response.ok) {
         const responseData = await response.json();
         console.log('API Response:', responseData);
-        navigate('/home');
+        navigate('/');
       } else {
         console.error('Error submitting form:', response.statusText);
       }
@@ -83,7 +85,7 @@ const AddSoccerForm = ({ player }) => {
           <div className='mb-4'>
             <label className='block'>Họ và tên</label>
             <Controller
-              name='fullName'
+              name='PlayerName'
               control={control}
               rules={{ required: 'Họ và tên là bắt buộc' }}
               render={({ field }) => (
@@ -93,15 +95,15 @@ const AddSoccerForm = ({ player }) => {
                 />
               )}
             />
-            {errors.fullName && (
-              <p className='text-red-500'>{errors.fullName.message}</p>
+            {errors.PlayerName && (
+              <p className='text-red-500'>{errors.PlayerName.message}</p>
             )}
           </div>
 
           <div className='mb-4'>
             <label className='block'>Ngày sinh</label>
             <Controller
-              name='dateOfBirth'
+              name='DateOfBirth'
               control={control}
               rules={{ required: 'Ngày sinh là bắt buộc' }}
               render={({ field }) => (
@@ -112,15 +114,15 @@ const AddSoccerForm = ({ player }) => {
                 />
               )}
             />
-            {errors.dateOfBirth && (
-              <p className='text-red-500'>{errors.dateOfBirth.message}</p>
+            {errors.DateOfBirth && (
+              <p className='text-red-500'>{errors.DateOfBirth.message}</p>
             )}
           </div>
 
           <div className='mb-4'>
             <label className='block'>Số áo</label>
             <Controller
-              name='jerseyNumber'
+              name='JerseyNumber'
               control={control}
               rules={{ required: 'Số áo là bắt buộc' }}
               render={({ field }) => (
@@ -131,15 +133,15 @@ const AddSoccerForm = ({ player }) => {
                 />
               )}
             />
-            {errors.jerseyNumber && (
-              <p className='text-red-500'>{errors.jerseyNumber.message}</p>
+            {errors.JerseyNumber && (
+              <p className='text-red-500'>{errors.JerseyNumber.message}</p>
             )}
           </div>
 
           <div className='mb-4'>
             <label className='block'>Quê quán</label>
             <Controller
-              name='hometown'
+              name='HomeTown'
               control={control}
               rules={{ required: 'Quê quán là bắt buộc' }}
               render={({ field }) => (
@@ -149,15 +151,15 @@ const AddSoccerForm = ({ player }) => {
                 />
               )}
             />
-            {errors.hometown && (
-              <p className='text-red-500'>{errors.hometown.message}</p>
+            {errors.HomeTown && (
+              <p className='text-red-500'>{errors.HomeTown.message}</p>
             )}
           </div>
 
           <div className='mb-4'>
             <label className='block'>Loại cầu thủ</label>
             <Controller
-              name='playerType'
+              name='PlayerType'
               control={control}
               render={({ field }) => (
                 <select
