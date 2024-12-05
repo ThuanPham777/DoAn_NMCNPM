@@ -7,12 +7,16 @@ import { Spin } from 'antd';
 const Team = () => {
   const [teams, setTeams] = useState([]); // team attend tournament
 
+  // get tournamet from localStorage
+  const { selectedTournament } = useSelector((state) => state.tournament);
+  console.log('selectedTournament', selectedTournament);
+
   // Gọi API để lấy dữ liệu danh sách đội bóng thuộc mùa giải đã chọn
   useEffect(() => {
     const fetchTeams = async () => {
       try {
         const response = await fetch(
-          'http://localhost:3000/api/team/teams-attend-tournament',
+          `http://localhost:3000/api/team/tournament/${selectedTournament.TournamentID}/teams-attend-tournament`,
           {
             method: 'GET',
           }

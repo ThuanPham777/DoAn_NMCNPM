@@ -8,7 +8,7 @@ const RegisterTournamentModal = ({
   selectedTournament,
 }) => {
   // State để lưu danh sách các đội được chọn
-  console.log('RegisterTournament temas', teams);
+  //console.log('RegisterTournament teams', teams);
   const [selectedTeams, setSelectedTeams] = useState([]);
   const [loading, setLoading] = useState(false); // Để hiển thị trạng thái đang tải
   const [error, setError] = useState(''); // Để hiển thị lỗi nếu có

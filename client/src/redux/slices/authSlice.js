@@ -39,6 +39,7 @@ export const fetchLogout = createAsyncThunk(
 
       const data = await response.json();
       // Xóa thông tin người dùng khỏi localStorage
+      localStorage.removeItem('selectedTournament');
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       return data.message || 'Logged out successfully';

@@ -7,12 +7,12 @@ const uploadPlayer = createUploadMiddleware('uploads/players'); // Middleware up
 const playerController = require('../controllers/player');
 
 router.post(
-  'team/:TeamID/add',
+  '/team/:TeamID/add',
   uploadPlayer.single('ProfileImg'),
   playerController.addPlayer
 );
 
-router.put('team/:TeamID/edit/:PlayerID', playerController.updatePlayer);
+router.put('/team/:TeamID/edit/:PlayerID', playerController.updatePlayer);
 
 router.get('/', playerController.getAllPlayers);
 

@@ -71,7 +71,7 @@ function App() {
                 element={<Home />}
               />
               <Route
-                path='/tournament-detail/:tournamentId'
+                path='/tournament-detail/:TournamentID'
                 element={<Home />}
               />
               <Route

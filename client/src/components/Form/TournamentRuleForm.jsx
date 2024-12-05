@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useSelector } from 'react-redux';
 
 const TournamentRuleForm = () => {
-  const user = 'admin'; // Xác định user nếu có
+  const user = useSelector((state) => state.user.user);
+  const { selectedTournament } = useSelector((state) => state.tournament);
+
+  const [ruleData, setRuleData] = useState(null); // State để lưu dữ liệu quy định từ API
 
   const {
     register,
@@ -11,28 +15,77 @@ const TournamentRuleForm = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      maxTeams: 20,
-      minPlayers: 15,
-      maxPlayers: 22,
-      maxForeignPlayers: 3,
-      maxPlayerAge: 40,
-      minPlayerAge: 16,
-      pointsPerWin: 3,
-      pointsPerLoss: 0,
-      pointsPerDraw: 1,
-      maxMatchDuration: 96,
-      goalTypes: 3,
-      priorityOrder: 'Điểm - Hiệu số - Tổng bàn thắng - Đối kháng',
+      MaxTeam: 20,
+      MinTeam: 15,
+      MaxPlayer: 22,
+      MinPlayer: 15,
+      MaxForeignPlayer: 3,
+      MinAgePlayer: 16,
+      MaxAgePlayer: 40,
+      WinScore: 3,
+      LoseScore: 0,
+      DrawScore: 1,
+      MaxTimeScore: 96,
+      NumberOfTypeScore: 3,
+      RankPriorityOrder: 'Điểm - Hiệu số - Tổng bàn thắng - Đối kháng',
     },
   });
 
+  useEffect(() => {
+    if (selectedTournament) {
+      const fetchRule = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
+          );
+          if (response.ok) {
+            const result = await response.json();
+            setRuleData(result.data); // Lưu dữ liệu vào state
+          }
+        } catch (error) {
+          console.error('Error fetching rule:', error);
+        }
+      };
+      fetchRule();
+    }
+  }, [selectedTournament]);
+
+  // Cập nhật dữ liệu vào form nếu có dữ liệu từ API
+  useEffect(() => {
+    if (ruleData) {
+      reset(ruleData); // Nếu có dữ liệu từ API, cập nhật form với dữ liệu đó
+    }
+  }, [ruleData, reset]);
+
   const handleFormSubmit = (data) => {
+    const fetchUpdateRule = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}/update`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          }
+        );
+        if (response.ok) {
+          console.log('Dữ liệu đã được cập nhật');
+        }
+      } catch (error) {
+        console.error('Error updating rule:', error);
+      }
+    };
+    fetchUpdateRule();
     console.log('Submitted data:', data);
   };
 
   const handleReset = () => {
     reset();
   };
+
+  const isEditable = user && user.Role === 'Admin';
 
   return (
     <div className='max-w-4xl mx-auto p-6 shadow-lg rounded-lg bg-white'>
@@ -43,12 +96,12 @@ const TournamentRuleForm = () => {
             <label>Số đội tối đa</label>
             <input
               type='number'
-              {...register('maxTeams')}
+              {...register('MaxTeam')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.maxTeams && (
-              <p className='text-red-500'>{errors.maxTeams.message}</p>
+            {errors.MaxTeam && (
+              <p className='text-red-500'>{errors.MaxTeam.message}</p>
             )}
           </div>
 
@@ -56,25 +109,24 @@ const TournamentRuleForm = () => {
             <label>Số cầu thủ tối thiểu</label>
             <input
               type='number'
-              {...register('minPlayers')}
+              {...register('MinPlayer')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.minPlayers && (
-              <p className='text-red-500'>{errors.minPlayers.message}</p>
+            {errors.MinPlayer && (
+              <p className='text-red-500'>{errors.MinPlayer.message}</p>
             )}
           </div>
-
           <div>
             <label>Số cầu thủ tối đa</label>
             <input
               type='number'
-              {...register('maxPlayers')}
+              {...register('MaxPlayer')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.maxPlayers && (
-              <p className='text-red-500'>{errors.maxPlayers.message}</p>
+            {errors.MaxPlayer && (
+              <p className='text-red-500'>{errors.MaxPlayer.message}</p>
             )}
           </div>
 
@@ -82,12 +134,12 @@ const TournamentRuleForm = () => {
             <label>Số cầu thủ nước ngoài tối đa</label>
             <input
               type='number'
-              {...register('maxForeignPlayers')}
+              {...register('MaxForeignPlayer')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.maxForeignPlayers && (
-              <p className='text-red-500'>{errors.maxForeignPlayers.message}</p>
+            {errors.MaxForeignPlayer && (
+              <p className='text-red-500'>{errors.MaxForeignPlayer.message}</p>
             )}
           </div>
 
@@ -95,12 +147,12 @@ const TournamentRuleForm = () => {
             <label>Độ tuổi cầu thủ tối đa</label>
             <input
               type='number'
-              {...register('maxPlayerAge')}
+              {...register('MaxAgePlayer')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.maxPlayerAge && (
-              <p className='text-red-500'>{errors.maxPlayerAge.message}</p>
+            {errors.MaxAgePlayer && (
+              <p className='text-red-500'>{errors.MaxAgePlayer.message}</p>
             )}
           </div>
 
@@ -108,12 +160,12 @@ const TournamentRuleForm = () => {
             <label>Độ tuổi cầu thủ tối thiểu</label>
             <input
               type='number'
-              {...register('minPlayerAge')}
+              {...register('MinAgePlayer')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.minPlayerAge && (
-              <p className='text-red-500'>{errors.minPlayerAge.message}</p>
+            {errors.MinAgePlayer && (
+              <p className='text-red-500'>{errors.MinAgePlayer.message}</p>
             )}
           </div>
 
@@ -121,12 +173,12 @@ const TournamentRuleForm = () => {
             <label>Điểm số thắng</label>
             <input
               type='number'
-              {...register('pointsPerWin')}
+              {...register('WinScore')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.pointsPerWin && (
-              <p className='text-red-500'>{errors.pointsPerWin.message}</p>
+            {errors.WinScore && (
+              <p className='text-red-500'>{errors.WinScore.message}</p>
             )}
           </div>
 
@@ -134,12 +186,12 @@ const TournamentRuleForm = () => {
             <label>Điểm số thua</label>
             <input
               type='number'
-              {...register('pointsPerLoss')}
+              {...register('LoseScore')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.pointsPerLoss && (
-              <p className='text-red-500'>{errors.pointsPerLoss.message}</p>
+            {errors.LoseScore && (
+              <p className='text-red-500'>{errors.LoseScore.message}</p>
             )}
           </div>
 
@@ -147,12 +199,12 @@ const TournamentRuleForm = () => {
             <label>Điểm số hòa</label>
             <input
               type='number'
-              {...register('pointsPerDraw')}
+              {...register('DrawScore')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.pointsPerDraw && (
-              <p className='text-red-500'>{errors.pointsPerDraw.message}</p>
+            {errors.DrawScore && (
+              <p className='text-red-500'>{errors.DrawScore.message}</p>
             )}
           </div>
 
@@ -160,12 +212,12 @@ const TournamentRuleForm = () => {
             <label>Thời gian ghi bàn tối đa</label>
             <input
               type='number'
-              {...register('maxMatchDuration')}
+              {...register('MaxTimeScore')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.maxMatchDuration && (
-              <p className='text-red-500'>{errors.maxMatchDuration.message}</p>
+            {errors.MaxTimeScore && (
+              <p className='text-red-500'>{errors.MaxTimeScore.message}</p>
             )}
           </div>
 
@@ -173,12 +225,12 @@ const TournamentRuleForm = () => {
             <label>Số lượng loại bàn thắng</label>
             <input
               type='number'
-              {...register('goalTypes')}
+              {...register('NumberOfTypeScore')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.goalTypes && (
-              <p className='text-red-500'>{errors.goalTypes.message}</p>
+            {errors.NumberOfTypeScore && (
+              <p className='text-red-500'>{errors.NumberOfTypeScore.message}</p>
             )}
           </div>
 
@@ -186,17 +238,17 @@ const TournamentRuleForm = () => {
             <label>Thứ tự ưu tiên</label>
             <input
               type='text'
-              {...register('priorityOrder')}
+              {...register('RankPriorityOrder')}
               className='border p-2 w-full rounded-md'
-              disabled={!user}
+              disabled={!isEditable}
             />
-            {errors.priorityOrder && (
-              <p className='text-red-500'>{errors.priorityOrder.message}</p>
+            {errors.RankPriorityOrder && (
+              <p className='text-red-500'>{errors.RankPriorityOrder.message}</p>
             )}
           </div>
         </div>
 
-        {user && (
+        {isEditable && (
           <div className='flex gap-4 justify-center'>
             <button
               type='submit'

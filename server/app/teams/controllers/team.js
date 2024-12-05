@@ -37,8 +37,17 @@ exports.addTeam = async (req, res, next) => {
 
 exports.getAllTeamsAttendTournament = async (req, res) => {
   try {
+    const TournamentID = parseInt(req.params.TournamentID, 10);
+
+    console.log('Tournament ID:', TournamentID);
+    if (!TournamentID) {
+      return res.status(400).json({ message: 'Missing TournamentID' });
+    }
     let pool = await db();
-    const result = await pool.request().execute('getAllTeamsAttendTournament');
+    const result = await pool
+      .request()
+      .input('TournamentID', TournamentID)
+      .execute('getAllTeamsAttendTournament');
     res.json({
       status: 'success',
       data: result.recordset,
@@ -82,18 +91,41 @@ exports.addTeamsInTournament = async (req, res) => {
 
   try {
     const pool = await db(); // Kết nối SQL Server
-    const teamIDTable = new sql.Table(); // Tạo bảng tạm
-    teamIDTable.columns.add('TeamID', sql.Int); // Định nghĩa cột
+
+    // Kiểm tra các TeamIDs đã tồn tại trong giải đấu
+    const existingTeamsResult = await pool
+      .request()
+      .input('TournamentID', sql.Int, TournamentID).query(`
+        SELECT TeamID
+        FROM TeamAttendTournament
+        WHERE TournamentID = @TournamentID AND TeamID IN (${TeamIDs.join(',')})
+      `);
+
+    const existingTeams = existingTeamsResult.recordset.map(
+      (team) => team.TeamID
+    );
+
+    if (existingTeams.length > 0) {
+      return res.status(400).json({
+        message: `Các đội sau đã tham gia giải đấu: ${existingTeams.join(
+          ', '
+        )}.`,
+      });
+    }
+
+    // Tạo bảng tạm để thêm các TeamIDs
+    const teamIDTable = new sql.Table();
+    teamIDTable.columns.add('TeamID', sql.Int);
 
     // Thêm dữ liệu vào bảng tạm
     TeamIDs.forEach((teamID) => teamIDTable.rows.add(teamID));
 
-    // Gọi Stored Procedure
+    // Gọi Stored Procedure để thêm các đội vào giải đấu
     const result = await pool
       .request()
       .input('TeamIDs', teamIDTable)
-      .input('TournamentID', TournamentID)
-      .input('UserID', UserID)
+      .input('TournamentID', sql.Int, TournamentID)
+      .input('UserID', sql.Int, UserID)
       .execute('registerTeamsInTournament');
 
     res.status(200).json({ message: result.recordset[0].Message });

@@ -1,21 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import TournamentCard from '../components/Tournament/TournamentCard';
-import { toast } from 'react-toastify'; // Import toast từ react-toastify
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
 import RegisterTournamentModal from '../components/Form/RegisterTournamentModal';
 
 const Home = () => {
   const user = useSelector((state) => state.user.user);
-
-  const { selectedTournament } = useSelector((state) => state.tournament);
+  const [selectedTournament, setSelectedTournament] = useState(null); // Không có giải đấu nào được chọn ban đầu
   const [tournaments, setTournaments] = useState([]);
   const [teams, setTeams] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State để điều khiển Modal
+  const [teamAttendTournament, setTeamAttendTournament] = useState([]);
+  const [filteredTeams, setFilteredTeams] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const navigate = useNavigate();
+  const fetchTeamsAttendTournament = async (tournamentID) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/team/tournament/${tournamentID}/teams-attend-tournament`
+      );
+      const result = await response.json();
+      setTeamAttendTournament(result.data);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    }
+  };
 
-  // Gọi API lấy dữ liệu danh sách giải đấu
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
@@ -24,46 +33,60 @@ const Home = () => {
           throw new Error('Network response was not ok');
         }
         const result = await response.json();
-        console.log(result.data);
         setTournaments(result.data);
       } catch (error) {
         console.error('Error fetching tournaments:', error);
       }
     };
 
-    const token = localStorage.getItem('token');
     const fetchMyTeams = async () => {
+      const token = localStorage.getItem('token');
       try {
-        // Fetching data using fetch API
         const response = await fetch(
           'http://localhost:3000/api/team/my-teams',
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
-
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-
-        // Parse the response as JSON
         const result = await response.json();
-        setTeams(result.data); // Lưu dữ liệu vào state myTeams
-        console.log('teams: ' + result.data);
+        setTeams(result.data);
       } catch (error) {
         console.error('Error fetching MyTeams:', error);
       }
     };
+
     fetchTournaments();
     fetchMyTeams();
   }, []);
 
+  useEffect(() => {
+    if (!selectedTournament) return;
+
+    // Fetch teams attending the tournament khi có giải đấu được chọn
+    fetchTeamsAttendTournament(selectedTournament.TournamentID);
+  }, [selectedTournament]);
+
+  useEffect(() => {
+    if (
+      !selectedTournament ||
+      teams.length === 0 ||
+      teamAttendTournament.length === 0
+    )
+      return;
+
+    const teamAttendIDs = teamAttendTournament.map((team) => team.TeamID);
+    const filtered = teams.filter(
+      (team) => !teamAttendIDs.includes(team.TeamID)
+    );
+    setFilteredTeams(filtered);
+  }, [selectedTournament, teams, teamAttendTournament]);
+
   const handleRegisterClick = () => {
     if (!selectedTournament) {
-      toast.error('Vui lòng chọn giải đấu trước khi đăng ký!', {});
+      toast.error('Vui lòng chọn giải đấu trước khi đăng ký!');
       return;
     }
     setIsModalOpen(true);
@@ -80,11 +103,14 @@ const Home = () => {
     setIsModalOpen(false);
   };
 
+  const handleTournamentSelect = (tournament) => {
+    setSelectedTournament(tournament); // Cập nhật giải đấu được chọn
+  };
+
   return (
     <div className='container mx-auto p-4'>
       <div className='flex justify-between items-center mb-8'>
         <h2 className='text-2xl font-bold'>Danh sách các giải đấu</h2>
-        {/* Kiểm tra xem người dùng có role là 'manager' mới hiển thị nút đăng ký */}
         {user?.Role === 'Manager' && (
           <button
             className='text-white border px-4 py-2 rounded-full outline-none bg-[#56FF61] hover:bg-[#3eeb4a]'
@@ -95,12 +121,11 @@ const Home = () => {
         )}
       </div>
 
-      {/* Modal hiển thị các đội bóng của người dùng */}
       <RegisterTournamentModal
         isOpen={isModalOpen}
         onClose={handleCancelModal}
         onRegister={handleConfirmRegistration}
-        teams={teams}
+        teams={filteredTeams}
         selectedTournament={selectedTournament}
       />
 
@@ -110,6 +135,7 @@ const Home = () => {
             <TournamentCard
               key={tournament.TournamentID}
               tournament={tournament}
+              onSelect={handleTournamentSelect}
             />
           ))}
       </div>

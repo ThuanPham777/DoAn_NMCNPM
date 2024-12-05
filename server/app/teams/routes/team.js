@@ -14,7 +14,7 @@ router.post(
 );
 
 router.get(
-  '/teams-attend-tournament',
+  '/tournament/:TournamentID/teams-attend-tournament',
   teamController.getAllTeamsAttendTournament
 );
 
