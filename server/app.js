@@ -11,6 +11,8 @@ const path = require('path');
 
 const app = express();
 app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
@@ -19,7 +21,6 @@ app.use(
   })
 );
 
-app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 (async () => {

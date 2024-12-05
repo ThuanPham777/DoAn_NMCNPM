@@ -35,6 +35,20 @@ exports.updateRule = async (req, res) => {
       RankPriorityOrder,
     } = req.body;
 
+    // console.log('max team', MaxTeam);
+    // console.log('min team', MinTeam);
+    // console.log('max player', MaxPlayer);
+    // console.log('min player', MinPlayer);
+    // console.log('max foreign player', MaxForeignPlayer);
+    // console.log('min age player', MinAgePlayer);
+    // console.log('max age player', MaxAgePlayer);
+    // console.log('win score', WinScore);
+    // console.log('lose score', LoseScore);
+    // console.log('draw score', DrawScore);
+    // console.log('max time score', MaxTimeScore);
+    // console.log('number of type score', NumberOfTypeScore);
+    // console.log('rank priority order', RankPriorityOrder);
+
     const TournamentID = parseInt(req.params.TournamentID, 10);
 
     if (!TournamentID) {
