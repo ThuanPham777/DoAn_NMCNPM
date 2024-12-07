@@ -24,10 +24,6 @@ BEGIN
             FROM @TeamIDs
             WHERE TeamID IN (SELECT TeamID
             FROM Team);
-            -- Đảm bảo TeamID hợp lệ
-
-            -- Thông báo thành công
-            SELECT 'All teams registered successfully.' AS Message;
         END
             ELSE
             BEGIN

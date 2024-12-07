@@ -11,6 +11,8 @@ router.post(
   tournamentController.addTournament
 );
 
+router.put('/update/TournamentID', tournamentController.updateTournament);
+
 router.get('/', tournamentController.getAllTournaments);
 
 router.get('/:id', tournamentController.getTournamentById);

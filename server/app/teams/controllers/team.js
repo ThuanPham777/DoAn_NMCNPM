@@ -128,7 +128,9 @@ exports.addTeamsInTournament = async (req, res) => {
       .input('UserID', sql.Int, UserID)
       .execute('registerTeamsInTournament');
 
-    res.status(200).json({ message: result.recordset[0].Message });
+    res.status(200).json({
+      success: 'đăng ký thành công',
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });

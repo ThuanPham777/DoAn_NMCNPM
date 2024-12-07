@@ -28,6 +28,7 @@ import MyTeamDetail from './pages/Manager/MyTeamDetail';
 import AddSoccer from './pages/Manager/AddSoccer';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import TournamentDetails from './pages/TournamentDetails';
 function Layout() {
   return (
     <div className='w-full h-screen flex flex-col md:flex-row'>
@@ -72,7 +73,7 @@ function App() {
               />
               <Route
                 path='/tournament-detail/:TournamentID'
-                element={<Home />}
+                element={<TournamentDetails />}
               />
               <Route
                 path='/team'

@@ -4,15 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { setSelectedTournament } from '../../redux/slices/tournamentSlice';
 
-const TournamentCard = ({ tournament, onSelect }) => {
+const TournamentCard = ({ tournament }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleClick = () => {
-    onSelect(tournament); // Gọi callback function để hiển thị thông tin giải đấu ở modal
     dispatch(setSelectedTournament(tournament)); // Lưu vào Redux và localStorage
     toast.success(`Đã chọn giải đấu ${tournament.TournamentName} thành công!`); // Hiển thị thông báo
-    navigate(`/tournament-detail/${tournament.TournamentID}`); // Điều hướng
+    navigate(`/tournament-detail/${tournament.TournamentID}`, {
+      state: { tournament },
+    }); // Điều hướng
   };
 
   return (

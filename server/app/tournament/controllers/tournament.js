@@ -92,3 +92,48 @@ exports.getTournamentById = async (req, res) => {
     });
   }
 };
+
+exports.updateTournament = async (req, res) => {
+  const { TournamentID } = req.params;
+  const { TournamentName, StartDate, EndDate } = req.body;
+  const TournamentLogo = req.file ? req.file.filename : null;
+
+  // Validate input
+  if (!TournamentID || !TournamentName || !StartDate || !EndDate) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    // Initialize database connection
+    const pool = await db();
+
+    // Execute stored procedure
+    const result = await pool
+      .request()
+      .input('TournamentID', TournamentID)
+      .input('TournamentName', TournamentName)
+      .input('StartDate', StartDate)
+      .input('EndDate', EndDate)
+      .input('TournamentLogo', TournamentLogo)
+      .execute('updateTournament');
+
+    // Check for successful update
+    if (result.rowsAffected[0] === 0) {
+      return res
+        .status(404)
+        .json({ message: 'Tournament not found or no changes made.' });
+    }
+
+    res.json({
+      message: 'Tournament updated successfully',
+      filePath: TournamentLogo
+        ? `/uploads/tournaments/${TournamentLogo}`
+        : null,
+    });
+  } catch (error) {
+    console.error('Error updating tournament:', error);
+    res
+      .status(500)
+      .json({ message: 'Internal server error', error: error.message });
+  }
+};

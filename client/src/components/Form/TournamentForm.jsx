@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-const TournamentForm = () => {
+const TournamentForm = ({ mode = 'create', initialData = null }) => {
   const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
 
@@ -11,35 +11,63 @@ const TournamentForm = () => {
     control,
     handleSubmit,
     formState: { errors },
+    setValue, // Để thiết lập giá trị mặc định khi chỉnh sửa
   } = useForm();
 
   const [image, setImage] = useState(null);
 
-  // Hàm xử lý submit form
+  useEffect(() => {
+    if (mode === 'edit' && initialData) {
+      setValue('tournamentName', initialData.TournamentName);
+
+      // Chuyển đổi ngày tháng về định dạng YYYY-MM-DD
+      const formatDate = (date) => {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      setValue('startDate', formatDate(initialData.StartDate));
+      setValue('endDate', formatDate(initialData.EndDate));
+
+      if (initialData.TournamentLogo) {
+        setImage(
+          `http://localhost:3000/uploads/tournaments/${initialData.TournamentLogo}`
+        );
+      }
+    }
+  }, [mode, initialData, setValue]);
+
   const handleFormSubmit = async (data) => {
     const formData = new FormData();
     formData.append('TournamentName', data.tournamentName);
     formData.append('StartDate', data.startDate);
     formData.append('EndDate', data.endDate);
 
-    // Nếu có ảnh, thêm vào FormData
     if (image) {
       formData.append('TournamentLogo', image);
     }
 
     try {
-      // Gửi request POST tới API
-      const response = await fetch('http://localhost:3000/api/tournament/add', {
-        method: 'POST',
-        body: formData, // Gửi dữ liệu dưới dạng FormData
+      const url =
+        mode === 'create'
+          ? 'http://localhost:3000/api/tournament/add'
+          : `http://localhost:3000/api/tournament/udpate/${initialData?.id}`;
+
+      const method = mode === 'create' ? 'POST' : 'PUT';
+
+      const response = await fetch(url, {
+        method,
+        body: formData,
       });
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log('API Response:', responseData);
+        //console.log('API Response:', responseData);
 
-        // Sau khi thêm thành công, điều hướng tới trang khác
-        navigate('/'); // Hoặc trang bạn muốn chuyển hướng đến
+        navigate('/'); // Chuyển hướng sau khi thành công
       } else {
         console.error('Error submitting form:', response.statusText);
       }
@@ -48,7 +76,6 @@ const TournamentForm = () => {
     }
   };
 
-  // Hàm xử lý thay đổi ảnh bìa
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -69,7 +96,7 @@ const TournamentForm = () => {
               <input
                 {...field}
                 className='border p-2 w-full rounded-md'
-                disabled={!user} // Nếu không có user thì disabled
+                disabled={!user}
               />
             )}
           />
@@ -89,7 +116,7 @@ const TournamentForm = () => {
                 type='date'
                 {...field}
                 className='border p-2 w-full rounded-md'
-                disabled={!user} // Nếu không có user thì disabled
+                disabled={!user}
               />
             )}
           />
@@ -109,7 +136,7 @@ const TournamentForm = () => {
                 type='date'
                 {...field}
                 className='border p-2 w-full rounded-md'
-                disabled={!user} // Nếu không có user thì disabled
+                disabled={!user}
               />
             )}
           />
@@ -124,12 +151,16 @@ const TournamentForm = () => {
             type='file'
             onChange={handleImageChange}
             className='border p-2 w-full rounded-md'
-            disabled={!user} // Nếu không có user thì disabled
+            disabled={!user}
           />
           {image && (
             <img
-              src={URL.createObjectURL(image)}
-              alt='Tournament'
+              src={
+                typeof image === 'string'
+                  ? image // Hiển thị URL từ server nếu image là chuỗi
+                  : URL.createObjectURL(image) // Hiển thị ảnh tạm thời nếu image là file
+              }
+              alt='Tournament Logo'
               className='mt-2 w-32 h-32 object-cover'
             />
           )}
@@ -140,7 +171,7 @@ const TournamentForm = () => {
             type='submit'
             className='bg-blue-500 text-white p-2 mt-4 rounded-md hover:bg-blue-600 transition duration-200'
           >
-            Cập nhật
+            {mode === 'create' ? 'Đăng ký' : 'Cập nhật'}
           </button>
         )}
       </form>
