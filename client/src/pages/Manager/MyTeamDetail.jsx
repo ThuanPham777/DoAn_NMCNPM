@@ -86,13 +86,26 @@ const MyTeamDetail = () => {
           <p className='text-lg'>Sân Nhà: {myTeam.Stadium}</p>
           <p className='text-lg'>HLV: {myTeam.Coach}</p>
         </div>
-        <Button
-          type='primary'
-          className='bg-[#56FF61] hover:bg-[#3eeb4a]'
-          onClick={() => navigate(`/my-team-detail/${TeamID}/add-soccer`)}
-        >
-          Thêm cầu thủ
-        </Button>
+        <div className='flex flex-col space-y-2'>
+          <Button
+            type='primary'
+            className='bg-[#56FF61] hover:bg-[#3eeb4a]'
+            onClick={() => navigate(`/my-team-detail/${TeamID}/add-soccer`)}
+          >
+            Thêm cầu thủ
+          </Button>
+          <Button
+            type='primary'
+            className='bg-[#56FF61] hover:bg-[#3eeb4a]'
+            onClick={() =>
+              navigate(`/my-team-detail/${TeamID}/update`, {
+                state: { myTeam: myTeam },
+              })
+            }
+          >
+            Chỉnh sửa đội bóng
+          </Button>
+        </div>
       </div>
 
       <h3 className='text-xl font-semibold mb-4'>Danh sách cầu thủ</h3>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 const TournamentRuleForm = () => {
+  const user = useSelector((state) => state.user.user);
   const [formData, setFormData] = useState({
     MaxTeam: 20,
     MinTeam: 15,
@@ -20,7 +21,6 @@ const TournamentRuleForm = () => {
 
   const { selectedTournament } = useSelector((state) => state.tournament);
 
-  // Tạo ánh xạ nhãn cho các trường
   const labelMapping = {
     MaxTeam: 'Số đội tối đa',
     MinTeam: 'Số đội tối thiểu',
@@ -37,7 +37,6 @@ const TournamentRuleForm = () => {
     RankPriorityOrder: 'Thứ tự ưu tiên xếp hạng',
   };
 
-  // Lấy thông tin quy định từ API
   useEffect(() => {
     const fetchRule = async () => {
       try {
@@ -47,7 +46,7 @@ const TournamentRuleForm = () => {
         if (response.ok) {
           const result = await response.json();
           if (result.data.length > 0) {
-            setFormData(result.data); // Lưu dữ liệu vào state formData nếu có dữ liệu
+            setFormData(result.data);
           } else {
             console.log('Không có dữ liệu từ API, sử dụng giá trị mặc định');
           }
@@ -62,7 +61,6 @@ const TournamentRuleForm = () => {
     }
   }, [selectedTournament]);
 
-  // Xử lý thay đổi giá trị các input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -71,7 +69,6 @@ const TournamentRuleForm = () => {
     });
   };
 
-  // Xử lý form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -101,7 +98,6 @@ const TournamentRuleForm = () => {
     }
   };
 
-  // Xử lý reset form về giá trị mặc định
   const handleReset = () => {
     setFormData({
       MaxTeam: 20,
@@ -120,6 +116,8 @@ const TournamentRuleForm = () => {
     });
   };
 
+  const isAdmin = user?.Role === 'Admin';
+
   return (
     <div className='max-w-4xl mx-auto p-6 shadow-lg rounded-lg bg-white'>
       <form onSubmit={handleSubmit}>
@@ -134,6 +132,7 @@ const TournamentRuleForm = () => {
                   name={key}
                   value={formData[key]}
                   onChange={handleChange}
+                  disabled={!isAdmin} // Disable nếu không phải Admin
                   className='border p-2 w-full rounded-md'
                 />
               ) : (
@@ -142,6 +141,7 @@ const TournamentRuleForm = () => {
                   name={key}
                   value={formData[key]}
                   onChange={handleChange}
+                  disabled={!isAdmin} // Disable nếu không phải Admin
                   className='border p-2 w-full rounded-md'
                 />
               )}
@@ -149,21 +149,24 @@ const TournamentRuleForm = () => {
           ))}
         </div>
 
-        <div className='flex gap-4 justify-center'>
-          <button
-            type='submit'
-            className='bg-blue-500 text-white p-2 mt-4 rounded-md hover:bg-blue-600 transition duration-200'
-          >
-            Cập nhật
-          </button>
-          <button
-            type='button'
-            onClick={handleReset}
-            className='bg-gray-400 text-white p-2 mt-4 rounded-md hover:bg-gray-500 transition duration-200'
-          >
-            Mặc định
-          </button>
-        </div>
+        {/* Hiển thị nút chỉ khi là Admin */}
+        {isAdmin && (
+          <div className='flex gap-4 justify-center'>
+            <button
+              type='submit'
+              className='bg-blue-500 text-white p-2 mt-4 rounded-md hover:bg-blue-600 transition duration-200'
+            >
+              Cập nhật
+            </button>
+            <button
+              type='button'
+              onClick={handleReset}
+              className='bg-gray-400 text-white p-2 mt-4 rounded-md hover:bg-gray-500 transition duration-200'
+            >
+              Mặc định
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

@@ -127,6 +127,7 @@ function App() {
                 path='/add-team'
                 element={<AddTeam />}
               />
+
               <Route
                 path='/my-team'
                 element={<MyTeam />}
@@ -134,6 +135,10 @@ function App() {
               <Route
                 path='/my-team-detail/:TeamID'
                 element={<MyTeamDetail />}
+              />
+              <Route
+                path='/my-team-detail/:TeamID/update'
+                element={<AddTeam />}
               />
               <Route
                 path='/my-team-detail/:TeamID/edit-soccer/:PlayerID'

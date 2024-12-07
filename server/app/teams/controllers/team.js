@@ -136,3 +136,45 @@ exports.addTeamsInTournament = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.updateTeam = async (req, res) => {
+  const TeamID = parseInt(req.params.TeamID, 10);
+  const { TeamName, Stadium, Coach } = req.body;
+  const TeamLogo = req.file ? req.file.filename : null;
+  const UserID = parsent(req.user.UserID);
+
+  if (!TeamID || !TeamName || !Stadium || !Coach) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  let pool;
+  try {
+    pool = await db(); // Kết nối với cơ sở dữ liệu
+
+    // Gọi stored procedure updateTeam
+    const result = await pool
+      .request()
+      .input('TeamID', TeamID)
+      .input('TeamName', TeamName)
+      .input('Stadium', Stadium)
+      .input('Coach', Coach)
+      .input('TeamLogo', TeamLogo)
+      .input('UserID', UserID) // ID người dùng thực hiện thao tác
+      .execute('updateTeam'); // Tên stored procedure trong cơ sở dữ liệu
+
+    // Kiểm tra nếu kết quả trả về có thông báo lỗi
+    if (result.recordset.length > 0 && result.recordset[0].ErrorMessage) {
+      return res.status(400).json({
+        message: result.recordset[0].ErrorMessage,
+      });
+    }
+
+    // Nếu không có lỗi, trả về thông báo thành công
+    res.json({ message: 'Team updated successfully' });
+  } catch (error) {
+    console.error('Error updating team:', error);
+    res
+      .status(500)
+      .json({ message: 'Internal Server Error', error: error.message });
+  }
+};

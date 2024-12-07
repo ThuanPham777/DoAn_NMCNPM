@@ -1,16 +1,29 @@
-// AddTeamForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 const AddTeamForm = () => {
+  const location = useLocation();
+  const { myTeam } = location.state || {}; // Get team data from location state
+  const { TeamID } = useParams(); // Get TeamID from URL (used for Update)
   const navigate = useNavigate();
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm();
   const [logo, setLogo] = useState(null);
+
+  // If myTeam exists (for update mode), set form values directly
+  useEffect(() => {
+    if (myTeam) {
+      setValue('teamName', myTeam.TeamName);
+      setValue('stadium', myTeam.Stadium);
+      setValue('coach', myTeam.Coach);
+      setLogo(myTeam.TeamLogo); // Set the logo if available
+    }
+  }, [myTeam, setValue]);
 
   // Handle form submission
   const handleFormSubmit = async (data) => {
@@ -24,16 +37,32 @@ const AddTeamForm = () => {
     }
 
     const token = localStorage.getItem('token');
-    //console.log('token', token);
 
     try {
-      const response = await fetch('http://localhost:3000/api/team/add', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        method: 'POST',
-        body: formData,
-      });
+      let response;
+
+      if (TeamID) {
+        // If TeamID exists, call API Update
+        response = await fetch(
+          `http://localhost:3000/api/team/${TeamID}/update`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            method: 'PUT',
+            body: formData,
+          }
+        );
+      } else {
+        // If no TeamID, call API Add new team
+        response = await fetch('http://localhost:3000/api/team/add', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          method: 'POST',
+          body: formData,
+        });
+      }
 
       if (response.ok) {
         const responseData = await response.json();
@@ -58,7 +87,7 @@ const AddTeamForm = () => {
   return (
     <div className='max-w-md mx-auto p-6 shadow-lg rounded-lg bg-white'>
       <h2 className='text-center text-lg font-semibold mb-4'>
-        Biểu mẫu đăng ký
+        {TeamID ? 'Cập nhật đội bóng' : 'Biểu mẫu đăng ký'}
       </h2>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div className='mb-4'>
@@ -122,6 +151,13 @@ const AddTeamForm = () => {
             onChange={handleLogoChange}
             className='border p-2 w-full rounded-md'
           />
+          {logo && (
+            <img
+              src={`http://localhost:3000/uploads/teams/${logo}`}
+              alt='Team Logo'
+              className='mt-2 w-32 h-32 object-cover'
+            />
+          )}
         </div>
 
         <div className='flex justify-center mt-6'>
@@ -129,7 +165,7 @@ const AddTeamForm = () => {
             type='submit'
             className='bg-blue-500 text-white px-4 py-2 rounded-md mr-2 hover:bg-blue-600 transition duration-200'
           >
-            ĐĂNG KÝ
+            {TeamID ? 'Cập nhật' : 'ĐĂNG KÝ'}
           </button>
           <button
             type='button'
