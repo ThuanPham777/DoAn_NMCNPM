@@ -1,4 +1,4 @@
-CREATE PROCEDURE UpdatePlayer
+CREATE PROCEDURE updatePlayer
     @PlayerID INT,
     @PlayerName NVARCHAR(100),
     @DateOfBirth DATE,

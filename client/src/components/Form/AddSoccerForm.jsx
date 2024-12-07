@@ -1,5 +1,4 @@
-// AddSoccerForm.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../../utils';
@@ -18,13 +17,24 @@ const AddSoccerForm = ({ player, TeamID }) => {
   useEffect(() => {
     if (player) {
       setValue('PlayerName', player.PlayerName);
-      setValue(
-        'DateOfBirth',
-        player.DateOfBirth ? formatDate(player.DateOfBirth) : ''
-      );
+
+      // Chuyển đổi ngày tháng về định dạng YYYY-MM-DD
+      const formatDate = (date) => {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      setValue('DateOfBirth', formatDate(player.DateOfBirth)); // Ensure correct format
       setValue('JerseyNumber', player.JerseyNumber);
       setValue('HomeTown', player.HomeTown);
       setValue('PlayerType', player.PlayerType);
+
+      // If the player has an image, set it to the image state
+      if (player.ProfileImg) {
+        setImage(player.ProfileImg); // Assuming ProfileImg is the URL or path to the image
+      }
     }
   }, [player, setValue]);
 
@@ -46,8 +56,6 @@ const AddSoccerForm = ({ player, TeamID }) => {
         ? `http://localhost:3000/api/player/team/${TeamID}/edit/${player.PlayerID}` // Edit endpoint
         : `http://localhost:3000/api/player/team/${TeamID}/add`; // Add endpoint
 
-      console.log('url', url);
-
       const method = player ? 'PUT' : 'POST'; // Use PUT for editing, POST for adding
 
       const response = await fetch(url, {
@@ -58,7 +66,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
       if (response.ok) {
         const responseData = await response.json();
         console.log('API Response:', responseData);
-        navigate('/');
+        navigate('/'); // Navigate after successful form submission
       } else {
         console.error('Error submitting form:', response.statusText);
       }
@@ -82,6 +90,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
           {player ? 'Chỉnh sửa cầu thủ' : 'Thông tin cầu thủ'}
         </h2>
         <form onSubmit={handleSubmit(handleFormSubmit)}>
+          {/* Player Name */}
           <div className='mb-4'>
             <label className='block'>Họ và tên</label>
             <Controller
@@ -100,6 +109,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
             )}
           </div>
 
+          {/* Date of Birth */}
           <div className='mb-4'>
             <label className='block'>Ngày sinh</label>
             <Controller
@@ -119,6 +129,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
             )}
           </div>
 
+          {/* Jersey Number */}
           <div className='mb-4'>
             <label className='block'>Số áo</label>
             <Controller
@@ -138,6 +149,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
             )}
           </div>
 
+          {/* HomeTown */}
           <div className='mb-4'>
             <label className='block'>Quê quán</label>
             <Controller
@@ -156,6 +168,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
             )}
           </div>
 
+          {/* Player Type */}
           <div className='mb-4'>
             <label className='block'>Loại cầu thủ</label>
             <Controller
@@ -174,6 +187,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
             />
           </div>
 
+          {/* Profile Image */}
           <div className='mb-4'>
             <label className='block'>Ảnh đại diện</label>
             <input
@@ -181,8 +195,20 @@ const AddSoccerForm = ({ player, TeamID }) => {
               onChange={handleImageChange}
               className='border p-2 w-full rounded-md'
             />
+            {image && (
+              <img
+                src={
+                  typeof image === 'string'
+                    ? `http://localhost:3000/uploads/players/${image}`
+                    : URL.createObjectURL(image)
+                }
+                alt='Player'
+                className='mt-2 w-32 h-32 object-cover'
+              />
+            )}
           </div>
 
+          {/* Submit and Cancel buttons */}
           <div className='flex justify-center mt-6'>
             <button
               type='submit'
