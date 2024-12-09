@@ -83,6 +83,8 @@ const TournamentForm = ({ mode = 'create', initialData = null }) => {
     }
   };
 
+  const isEdit = user?.Role === 'Admin';
+
   return (
     <div className='max-w-lg mx-auto p-6 shadow-lg rounded-lg bg-white'>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
@@ -96,7 +98,7 @@ const TournamentForm = ({ mode = 'create', initialData = null }) => {
               <input
                 {...field}
                 className='border p-2 w-full rounded-md'
-                disabled={!user}
+                disabled={!isEdit}
               />
             )}
           />
@@ -116,7 +118,7 @@ const TournamentForm = ({ mode = 'create', initialData = null }) => {
                 type='date'
                 {...field}
                 className='border p-2 w-full rounded-md'
-                disabled={!user}
+                disabled={!isEdit}
               />
             )}
           />
@@ -136,7 +138,7 @@ const TournamentForm = ({ mode = 'create', initialData = null }) => {
                 type='date'
                 {...field}
                 className='border p-2 w-full rounded-md'
-                disabled={!user}
+                disabled={!isEdit}
               />
             )}
           />
@@ -151,7 +153,7 @@ const TournamentForm = ({ mode = 'create', initialData = null }) => {
             type='file'
             onChange={handleImageChange}
             className='border p-2 w-full rounded-md'
-            disabled={!user}
+            disabled={!isEdit}
           />
           {image && (
             <img
@@ -166,7 +168,7 @@ const TournamentForm = ({ mode = 'create', initialData = null }) => {
           )}
         </div>
 
-        {user && (
+        {isEdit && (
           <button
             type='submit'
             className='bg-blue-500 text-white p-2 mt-4 rounded-md hover:bg-blue-600 transition duration-200'
