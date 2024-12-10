@@ -1,193 +1,134 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Table } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Button, Table, Pagination, message } from 'antd';
 import { IoFlagOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import dayjs from 'dayjs';
 
 const MatchSchedule = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.user);
   const { selectedTournament } = useSelector((state) => state.tournament);
 
-  const [teams, setTeams] = useState({});
+  const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
+  const [teams, setTeams] = useState([]);
 
-  // Fetch teams data
-  useEffect(() => {
-    const fetchTeams = async () => {
-      if (!selectedTournament) return;
-
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `http://localhost:3000/api/team/tournament/${selectedTournament.TournamentID}/teams-attend-tournament`
-        );
-        const result = await response.json();
-        const teamMap = result.data.reduce((acc, team) => {
-          acc[team.TeamID] = {
-            name: team.TeamName,
-            stadium: team.Stadium,
-          };
-          return acc;
-        }, {});
-        setTeams(teamMap);
-      } catch (error) {
-        console.error('Error fetching teams:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeams();
-  }, [selectedTournament]);
-
-  // Generate schedule
-  const schedule = useMemo(() => {
-    if (Object.keys(teams).length === 0) return [];
-
-    const teamIds = [...Object.keys(teams)];
-    if (teamIds.length % 2 !== 0) teamIds.push(null); // Bye round
-
-    const numRounds = teamIds.length - 1;
-    const rounds = [];
-
-    for (let round = 0; round < numRounds; round++) {
-      const matches = [];
-      const roundDate = dayjs().add(round, 'days').format('YYYY-MM-DD');
-
-      for (let i = 0; i < teamIds.length / 2; i++) {
-        const team1 = teamIds[i];
-        const team2 = teamIds[teamIds.length - 1 - i];
-
-        if (team1 && team2) {
-          matches.push({
-            team1: teams[team1]?.name || 'Chưa xác định',
-            team2: teams[team2]?.name || 'Chưa xác định',
-            location: teams[team1]?.stadium || 'Chưa xác định',
-            time: `${roundDate} ${14 + i}:00`,
-          });
-        }
-      }
-
-      rounds.push({ id: round + 1, date: roundDate, matches });
-      teamIds.splice(1, 0, teamIds.pop());
-    }
-
-    // Generate return matches
-    const returnRounds = rounds.map((round, index) => ({
-      id: numRounds + index + 1,
-      date: dayjs(round.date).add(numRounds, 'days').format('YYYY-MM-DD'),
-      matches: round.matches.map((match) => ({
-        team1: match.team2,
-        team2: match.team1,
-        location:
-          teams[
-            Object.keys(teams).find((key) => teams[key].name === match.team2)
-          ]?.stadium || 'Chưa xác định',
-        time: `${dayjs(round.date)
-          .add(numRounds, 'days')
-          .format('YYYY-MM-DD')} ${match.time.split(' ')[1]}`,
-      })),
-    }));
-
-    return [...rounds, ...returnRounds];
-  }, [teams]);
-
-  // Save round schedule to database
-  const createRoundSchedule = async (rounds) => {
+  const fetchTeams = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/round/${selectedTournament.TournamentID}/create`,
+        `http://localhost:3000/api/team/tournament/${selectedTournament.TournamentID}/teams-attend-tournament`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            TournamentID: selectedTournament.TournamentID,
-            Rounds: rounds.map((round) => ({
-              RoundID: round.id,
-              TournamentID: selectedTournament.TournamentID,
-            })),
-          }),
+          method: 'GET',
         }
       );
       const result = await response.json();
-      console.log('Round creation result:', result);
+      console.log('Danh sách các đội bóng', result.data);
+      setTeams(result.data); // Lưu danh sách đội bóng vào state
     } catch (error) {
-      console.error('Error creating rounds:', error);
+      console.error('Error fetching teams:', error);
     }
   };
 
-  // Save match data to database
-  const createMatchInRound = async (round) => {
+  // Hàm lấy lịch thi đấu từ backend
+  const fetchSchedule = async () => {
+    if (!selectedTournament) return;
+
+    setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:3000/api/match/${selectedTournament.TournamentID}/create`,
+        `http://localhost:3000/api/schedule/${selectedTournament.TournamentID}`
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Lịch thi đấu đã được cập nhật', result.data);
+        setSchedule(result.data);
+      } else {
+        const error = await response.json();
+        message.error(error.message || 'Failed to fetch schedule.');
+      }
+    } catch (error) {
+      console.error('Error fetching schedule:', error);
+      message.error('An error occurred while fetching the schedule.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Hàm tạo lịch thi đấu
+  const createSchedule = async () => {
+    if (!selectedTournament || !teams.length) return;
+
+    // Tính số vòng đấu cần thiết từ số đội tham gia
+    const newRound = teams.length - 1;
+    // Kiểm tra xem lịch thi đấu đã đủ vòng đấu chưa
+    if (newRound <= schedule.length) {
+      message.warning('Lịch thi đấu đã được tạo trước đó!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/schedule/${selectedTournament.TournamentID}/create`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            RoundID: round.id,
-            TournamentID: selectedTournament.TournamentID,
-            Matches: round.matches.map((match, index) => ({
-              MatchID: index + 1,
-              Team1ID: Object.keys(teams).find(
-                (key) => teams[key].name === match.team1
-              ),
-              Team2ID: Object.keys(teams).find(
-                (key) => teams[key].name === match.team2
-              ),
-              MatchDate: dayjs(match.time).format('YYYY-MM-DD HH:mm:ss'),
-            })),
-          }),
         }
       );
-      const text = await response.text(); // Get the raw text
-      console.log('Raw response:', text); // Log the raw response
 
-      const result = JSON.parse(text); // Try to parse the text as JSON
-      console.log('Match creation result:', result);
+      if (response.ok) {
+        message.success('Lịch thi đấu đã được tạo thành công!');
+        fetchSchedule(); // Lấy lại lịch thi đấu sau khi tạo
+      } else {
+        const error = await response.json();
+        message.error(error.message || 'Failed to create schedule.');
+      }
     } catch (error) {
-      console.error('Error creating matches:', error);
+      console.error('Error creating schedule:', error);
+      message.error('An error occurred while creating the schedule.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Lấy lịch thi đấu khi component mount hoặc selectedTournament thay đổi
   useEffect(() => {
-    if (schedule.length > 0 && selectedTournament) {
-      const createSchedule = async () => {
-        try {
-          await createRoundSchedule(schedule);
-          await Promise.all(schedule.map((round) => createMatchInRound(round)));
-          console.log('Schedule created successfully!');
-        } catch (error) {
-          console.error('Error creating schedule:', error);
-        }
-      };
-
-      createSchedule();
+    if (selectedTournament) {
+      fetchSchedule();
+      fetchTeams(); // Fetch teams whenever the selectedTournament changes
     }
-  }, [schedule, selectedTournament]);
+  }, [selectedTournament]);
 
+  // Lấy trận đấu của vòng hiện tại
   const currentMatches =
     schedule.find((round) => round.id === currentRound)?.matches || [];
 
   const columns = [
-    { title: 'Đội 1', dataIndex: 'team1', key: 'team1' },
-    { title: 'Đội 2', dataIndex: 'team2', key: 'team2' },
-    { title: 'Sân đấu', dataIndex: 'location', key: 'location' },
-    { title: 'Thời gian', dataIndex: 'time', key: 'time' },
+    { title: 'Đội 1', dataIndex: 'team1Name', key: 'team1Name' },
+    { title: 'Đội 2', dataIndex: 'team2Name', key: 'team2Name' },
+    { title: 'Sân đấu', dataIndex: 'stadium', key: 'stadium' },
+    { title: 'Thời gian', dataIndex: 'date', key: 'date' },
     ...(user?.Role === 'Admin'
       ? [
           {
-            title: 'Action',
+            title: 'Hành động',
             key: 'action',
             render: (_, record) => (
-              <Button
-                onClick={() => navigate(`/update-match-result/${record.id}`)}
-              >
-                View
-              </Button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <Button
+                  onClick={() => navigate(`/update-match-result/${record.id}`)}
+                >
+                  Cập nhật kết quả
+                </Button>
+                <Button
+                  onClick={() => navigate(`/edit-match/${record.id}`)}
+                  type='primary'
+                >
+                  Chỉnh sửa
+                </Button>
+              </div>
             ),
           },
         ]
@@ -198,13 +139,14 @@ const MatchSchedule = () => {
     <div>
       <div className='flex justify-between items-center mb-8'>
         <h1 className='text-2xl font-bold'>Lịch thi đấu</h1>
-        {user && (
-          <button
+        {user?.Role === 'Admin' && (
+          <Button
             className='text-white border px-4 py-2 rounded-full bg-[#56FF61] hover:bg-[#3eeb4a]'
-            onClick={() => navigate('/add-match-schedule')}
+            onClick={createSchedule}
+            loading={loading}
           >
-            Thêm lịch thi đấu
-          </button>
+            Tạo lịch thi đấu
+          </Button>
         )}
       </div>
 
@@ -217,29 +159,22 @@ const MatchSchedule = () => {
       <Table
         columns={columns}
         dataSource={currentMatches}
-        rowKey={(record) => `${record.team1}-${record.team2}`}
+        rowKey={(record) => record.id} // Dùng MatchID làm key
+        loading={loading}
         pagination={false}
+        locale={{ emptyText: 'Không có trận đấu nào trong vòng này.' }}
       />
 
       {schedule.length > 0 && (
         <div
           style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}
         >
-          <Button
-            onClick={() => setCurrentRound((prev) => Math.max(prev - 1, 1))}
-            disabled={currentRound === 1}
-          >
-            Trang trước
-          </Button>
-          <Button
-            onClick={() =>
-              setCurrentRound((prev) => Math.min(prev + 1, schedule.length))
-            }
-            disabled={currentRound === schedule.length}
-            style={{ marginLeft: 8 }}
-          >
-            Trang sau
-          </Button>
+          <Pagination
+            current={currentRound}
+            total={schedule.length}
+            onChange={(page) => setCurrentRound(page)}
+            pageSize={1} // Chỉ cho phép chuyển qua lại giữa các vòng đấu
+          />
         </div>
       )}
     </div>
