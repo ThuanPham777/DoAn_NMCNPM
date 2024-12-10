@@ -5,6 +5,8 @@ const tournamentRoutes = require('./app/tournament/routes/tournament');
 const teamRoutes = require('./app/teams/routes/team');
 const playerRoutes = require('./app/players/routes/player');
 const ruleRoutes = require('./app/rule/routes/rule');
+const roundRoutes = require('./app/rounds/routes/round');
+const matchRoutes = require('./app/matches/routes/match');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -44,5 +46,7 @@ app.use('/api/tournament/', tournamentRoutes);
 app.use('/api/team/', teamRoutes);
 app.use('/api/player/', playerRoutes);
 app.use('/api/rule/', ruleRoutes);
+app.use('/api/round/', roundRoutes);
+app.use('/api/match/', matchRoutes);
 
 module.exports = app;
