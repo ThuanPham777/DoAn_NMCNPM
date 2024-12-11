@@ -170,6 +170,7 @@ exports.getSchedule = async (req, res) => {
         .filter((match) => match.RoundID === round.RoundID)
         .map((match) => ({
           matchID: match.MatchID,
+          roundID: match.RoundID,
           team1ID: match.Team1ID,
           team1Name: teamMap[match.Team1ID].name || 'Unknown',
           team1Logo: teamMap[match.Team1ID].logo || 'Unknown',

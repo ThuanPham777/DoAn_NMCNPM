@@ -2,7 +2,6 @@ CREATE PROCEDURE addMatchScore
     @MatchID INT,
     @RoundID INT,
     @TournamentID INT,
-    @TeamID INT,
     @PlayerID INT,
     @ScoreTime INT,
     @ScoreType NVARCHAR(100)

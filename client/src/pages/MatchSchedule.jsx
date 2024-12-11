@@ -120,7 +120,7 @@ const MatchSchedule = () => {
                 <Button
                   onClick={() =>
                     navigate(`/update-match-result/${record.matchID}`, {
-                      state: { match: record },
+                      state: { match: record, RoundID: record.roundID },
                     })
                   }
                 >
