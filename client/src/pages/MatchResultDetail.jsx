@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 const MatchResultDetail = () => {
-  const { id } = useParams();
-  const [match, setMatch] = useState(null);
+  const location = useLocation();
+  const { match } = location.state || {};
+  console.log(match);
 
   useEffect(() => {
     fetch('/assets/data/rounds.json')

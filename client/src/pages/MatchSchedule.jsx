@@ -118,12 +118,16 @@ const MatchSchedule = () => {
             render: (_, record) => (
               <div style={{ display: 'flex', gap: '8px' }}>
                 <Button
-                  onClick={() => navigate(`/update-match-result/${record.id}`)}
+                  onClick={() =>
+                    navigate(`/update-match-result/${record.matchID}`, {
+                      state: { match: record },
+                    })
+                  }
                 >
                   Cập nhật kết quả
                 </Button>
                 <Button
-                  onClick={() => navigate(`/edit-match/${record.id}`)}
+                  onClick={() => navigate(`/edit-match/${record.matchID}`)}
                   type='primary'
                 >
                   Chỉnh sửa

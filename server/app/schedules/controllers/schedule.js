@@ -147,7 +147,7 @@ exports.getSchedule = async (req, res) => {
       .request()
       .input('TournamentID', TournamentID)
       .query(
-        `SELECT TeamID, TeamName FROM Team WHERE TeamID IN
+        `SELECT TeamID, TeamName, TeamLogo FROM Team WHERE TeamID IN
          (SELECT Team1ID FROM Match WHERE TournamentID = @TournamentID
           UNION
           SELECT Team2ID FROM Match WHERE TournamentID = @TournamentID)`
@@ -157,7 +157,10 @@ exports.getSchedule = async (req, res) => {
     // Tạo một map từ TeamID -> TeamName
     const teamMap = {};
     teams.forEach((team) => {
-      teamMap[team.TeamID] = team.TeamName;
+      teamMap[team.TeamID] = {
+        name: team.TeamName,
+        logo: team.TeamLogo, // Thêm TeamLogo vào map
+      };
     });
 
     // Kết hợp các vòng đấu với danh sách trận đấu
@@ -168,9 +171,11 @@ exports.getSchedule = async (req, res) => {
         .map((match) => ({
           matchID: match.MatchID,
           team1ID: match.Team1ID,
-          team1Name: teamMap[match.Team1ID] || 'Unknown',
+          team1Name: teamMap[match.Team1ID].name || 'Unknown',
+          team1Logo: teamMap[match.Team1ID].logo || 'Unknown',
           team2ID: match.Team2ID,
-          team2Name: teamMap[match.Team2ID] || 'Unknown',
+          team2Name: teamMap[match.Team2ID].name || 'Unknown',
+          team2Logo: teamMap[match.Team2ID].logo || 'Unknown',
           stadium: match.Stadium, // Thông tin sân đá
           date: dayjs(match.MatchDate).format('YYYY-MM-DD HH:mm:ss'),
         })),

@@ -1,28 +1,66 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Modal, Select, Input, Form } from 'antd';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 const { Option } = Select;
 
-const UpdateMatchResult = ({ matchData }) => {
-  const { matchId } = useParams();
+const UpdateMatchResult = () => {
+  const location = useLocation();
+  const { match } = location.state || {};
+  const [team1, setTeam1] = useState([]);
+  const [team2, setTeam2] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState(null);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalType, setModalType] = useState(null);
 
-  // Mock data structure, replace with actual data from matchData or API
-  const matchInfo = matchData || {
-    homeTeam: { name: 'Man City', logo: '/assets/logos/man-city.png' },
-    awayTeam: { name: 'Arsenal', logo: '/assets/logos/arsenal.png' },
+  const matchInfo = {
+    homeTeam: {
+      name: match.team1Name,
+      logo: `http://localhost:3000/uploads/teams/${match.team1Logo}`,
+    },
+    awayTeam: {
+      name: match.team2Name,
+      logo: `http://localhost:3000/uploads/teams/${match.team2Logo}`,
+    },
   };
 
-  // useEffect(() => {
-  //   // Mock data structure, replace with actual data
+  useEffect(() => {
+    // Fetch cầu thủ của đội 1
+    const fetchTeam1Players = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/player/team/${match.team1ID}`
+        );
+        if (response.ok) {
+          const result = await response.json();
+          setTeam1(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching team1 players:', error);
+      }
+    };
 
-  //   const selectedMatch = selectedTournament?.rounds?.matches.find(
-  //     (match) => match.id === matchId
-  //   );
-  // }, [selectedTournament]);
+    fetchTeam1Players();
+
+    // Fetch cầu thủ của đội 2
+    const fetchTeam2Players = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/player/team/${match.team2ID}`
+        );
+        if (response.ok) {
+          const result = await response.json();
+          setTeam2(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching team2 players:', error);
+      }
+    };
+
+    fetchTeam2Players();
+  }, [match.team1ID, match.team2ID]);
 
   const showModal = (type) => {
     setModalType(type);
@@ -31,11 +69,19 @@ const UpdateMatchResult = ({ matchData }) => {
 
   const handleOk = () => {
     setIsModalVisible(false);
-    // Add functionality to handle form submission
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
+  };
+
+  const handleTeamChange = (value) => {
+    setSelectedTeam(value);
+    if (value === 'home') {
+      setPlayers(team1); // Hiển thị cầu thủ đội nhà
+    } else if (value === 'away') {
+      setPlayers(team2); // Hiển thị cầu thủ đội khách
+    }
   };
 
   return (
@@ -108,49 +154,50 @@ const UpdateMatchResult = ({ matchData }) => {
         ]}
       >
         <Form layout='vertical'>
+          <Form.Item label='Đội'>
+            <Select onChange={handleTeamChange}>
+              <Option value='home'>{matchInfo.homeTeam.name}</Option>
+              <Option value='away'>{matchInfo.awayTeam.name}</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label='Cầu thủ'>
+            <Select placeholder='Chọn cầu thủ'>
+              {players.map((player) => (
+                <Option
+                  key={player.PlayerID}
+                  value={player.PlayerID}
+                >
+                  {player.PlayerName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
           {modalType === 'goal' && (
             <>
-              <Form.Item label='Đội'>
-                <Select>
-                  <Option value='home'>{matchInfo.homeTeam.name}</Option>
-                  <Option value='away'>{matchInfo.awayTeam.name}</Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label='Cầu thủ'>
-                <Select placeholder='Chọn cầu thủ'>
-                  {/* Replace with actual player names */}
-                  <Option value='player1'>Player 1</Option>
-                  <Option value='player2'>Player 2</Option>
-                </Select>
-              </Form.Item>
               <Form.Item label='Loại bàn thắng'>
                 <Select placeholder='Chọn loại bàn thắng'>
                   <Option value='normal'>Bình thường</Option>
                   <Option value='penalty'>Phạt đền (penalty)</Option>
-                  <Option value='penalty'>Phản lưới nhà</Option>
+                  <Option value='own'>Phản lưới nhà</Option>
                 </Select>
               </Form.Item>
               <Form.Item label='Thời điểm ghi bàn'>
-                <Input placeholder='Phút ghi bàn' />
+                <Select placeholder='Chọn phút ghi bàn'>
+                  {Array.from({ length: 97 }, (_, i) => (
+                    <Option
+                      key={i}
+                      value={i}
+                    >
+                      Phút {i}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </>
           )}
 
           {modalType === 'card' && (
             <>
-              <Form.Item label='Đội'>
-                <Select>
-                  <Option value='home'>{matchInfo.homeTeam.name}</Option>
-                  <Option value='away'>{matchInfo.awayTeam.name}</Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label='Cầu thủ'>
-                <Select placeholder='Chọn cầu thủ'>
-                  {/* Replace with actual player names */}
-                  <Option value='player1'>Player 1</Option>
-                  <Option value='player2'>Player 2</Option>
-                </Select>
-              </Form.Item>
               <Form.Item label='Loại thẻ'>
                 <Select placeholder='Chọn loại thẻ'>
                   <Option value='yellow'>Thẻ vàng</Option>
@@ -158,7 +205,16 @@ const UpdateMatchResult = ({ matchData }) => {
                 </Select>
               </Form.Item>
               <Form.Item label='Thời điểm nhận thẻ'>
-                <Input placeholder='Phút nhận thẻ' />
+                <Select placeholder='Chọn phút nhận thẻ'>
+                  {Array.from({ length: 97 }, (_, i) => (
+                    <Option
+                      key={i}
+                      value={i}
+                    >
+                      Phút {i}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </>
           )}
