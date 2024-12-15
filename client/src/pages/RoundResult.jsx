@@ -1,43 +1,71 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Table } from 'antd';
+import { Button, Table, Pagination, message } from 'antd';
 import { IoFlagOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 const RoundResult = () => {
-  const { selectedTournament } = useSelector((state) => state.tournament);
-  const [data, setData] = useState([]);
-  const [currentRound, setCurrentRound] = useState(1);
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user.user);
+  const { selectedTournament } = useSelector((state) => state.tournament);
 
-  useEffect(() => {
-    if (selectedTournament && selectedTournament.rounds) {
-      setData(selectedTournament.rounds);
+  const [rounds, setRounds] = useState([]); // Danh sách các vòng đấu
+  const [loading, setLoading] = useState(false);
+  const [currentRound, setCurrentRound] = useState(1); // Vòng hiện tại
+
+  // Fetch kết quả các vòng từ backend
+  const fetchRoundResults = async () => {
+    if (!selectedTournament) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/round/${selectedTournament.TournamentID}/result`
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Kết quả các vòng đấu:', result.data);
+        setRounds(result.data || []);
+      } else {
+        const error = await response.json();
+        message.error(error.message || 'Không thể tải kết quả các vòng.');
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải kết quả các vòng:', error);
+      message.error('Đã xảy ra lỗi khi tải kết quả.');
+    } finally {
+      setLoading(false);
     }
-  }, [selectedTournament]); // Chạy lại khi selectedTournament thay đổi
+  };
 
-  // Filter matches for the current round
+  // Lấy kết quả các vòng khi component mount hoặc selectedTournament thay đổi
+  useEffect(() => {
+    if (selectedTournament) {
+      fetchRoundResults();
+    }
+  }, [selectedTournament]);
+
+  // Lấy danh sách trận đấu thuộc vòng hiện tại
   const currentMatches =
-    data.find((round) => parseInt(round.id) === currentRound)?.matches || [];
+    rounds.find((round) => round.id === currentRound)?.matches || [];
 
-  console.log('data: ', currentMatches);
-
-  // Table columns for match data
+  // Cột dữ liệu trong bảng
   const columns = [
     {
       title: 'Đội 1',
-      dataIndex: 'team1',
-      key: 'team1',
+      dataIndex: 'team1Name',
+      key: 'team1Name',
     },
     {
       title: 'Đội 2',
-      dataIndex: 'team2',
-      key: 'team2',
+      dataIndex: 'team2Name',
+      key: 'team2Name',
     },
     {
       title: 'Sân đấu',
-      dataIndex: 'location',
-      key: 'location',
+      dataIndex: 'stadium',
+      key: 'stadium',
     },
     {
       title: 'Thời gian',
@@ -48,54 +76,55 @@ const RoundResult = () => {
       title: 'Tỷ số',
       dataIndex: 'score',
       key: 'score',
+      render: (_, record) =>
+        `${record.homeScore ?? '-'} - ${record.awayScore ?? '-'}`,
     },
   ];
 
-  // Handle pagination
-  const handleNext = () => {
-    if (currentRound < data.length) setCurrentRound(currentRound + 1);
-  };
-
-  const handlePrevious = () => {
-    if (currentRound > 1) setCurrentRound(currentRound - 1);
-  };
-
-  // Row click handler to navigate to MatchResult
+  // Sự kiện khi nhấn vào một hàng trong bảng
   const onRowClick = (record) => {
-    navigate(`/match-result-detail/${record.id}`);
+    if (!record.matchID) return;
+    navigate(`/update-match-result/${record.matchID}`, {
+      state: { match: record, RoundID: record.roundID },
+    });
+  };
+
+  // Sự kiện chuyển vòng đấu
+  const handleRoundChange = (page) => {
+    setCurrentRound(page);
   };
 
   return (
     <div>
-      <h1 className='text-2xl font-semibold mb-8'>Vòng {currentRound}</h1>
+      <h1 className='text-2xl font-semibold mb-8'>Kết quả các vòng đấu</h1>
       <IoFlagOutline
         size={48}
         className='mx-auto mb-8'
       />
+      <h2 className='text-xl font-bold mb-4'>Vòng {currentRound}</h2>
       <Table
         columns={columns}
         dataSource={currentMatches}
-        rowKey='id'
+        rowKey={(record) => record.matchID} // Sử dụng matchID làm key
         pagination={false}
+        loading={loading}
         onRow={(record) => ({
           onClick: () => onRowClick(record),
         })}
+        locale={{ emptyText: 'Không có trận đấu nào trong vòng này.' }}
       />
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
-        <Button
-          onClick={handlePrevious}
-          disabled={currentRound === 1}
+      {rounds.length > 0 && (
+        <div
+          style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}
         >
-          Trang trước
-        </Button>
-        <Button
-          onClick={handleNext}
-          disabled={currentRound === data.length}
-          style={{ marginLeft: 8 }}
-        >
-          Trang sau
-        </Button>
-      </div>
+          <Pagination
+            current={currentRound}
+            total={rounds.length}
+            pageSize={1} // Mỗi trang tương ứng với một vòng đấu
+            onChange={handleRoundChange}
+          />
+        </div>
+      )}
     </div>
   );
 };
