@@ -34,6 +34,15 @@ const UpdateMatchResult = () => {
     },
   };
 
+  console.log('matchInfo', match);
+  // Calculate if the match has started or not
+  const matchStartTime = new Date(match.date); // Assuming match.startTime is available as a string (e.g., '2024-12-20T15:00:00Z')
+  const currentTime = new Date();
+
+  const matchStatus =
+    currentTime < matchStartTime ? 'Chưa diễn ra' : 'Đã diễn ra';
+  console.log('matchStatus: ' + matchStatus);
+
   const fetchMatchDetails = async () => {
     try {
       const response = await fetch(
@@ -125,6 +134,7 @@ const UpdateMatchResult = () => {
 
       if (response.ok) {
         toast.success('Thêm bàn thắng thành công!');
+        fetchMatchDetails();
         setIsModalVisible(false);
       } else {
         throw new Error('Failed to add score.');
@@ -187,12 +197,16 @@ const UpdateMatchResult = () => {
             </div>
           </div>
 
-          {matchScoreInfo && (
-            <div className='flex justify-center items-center gap-4 text-xl font-bold'>
-              <div>{matchScoreInfo.HomeScore}</div>
-              <div className='text-2xl'>-</div>
-              <div>{matchScoreInfo.AwayScore}</div>
-            </div>
+          {matchStatus === 'Chưa diễn ra' ? (
+            <div className='text-2xl font-bold text-red-600'>{matchStatus}</div>
+          ) : (
+            matchScoreInfo && (
+              <div className='flex justify-center items-center gap-4 text-xl font-bold'>
+                <div>{matchScoreInfo.HomeScore}</div>
+                <div className='text-2xl'>-</div>
+                <div>{matchScoreInfo.AwayScore}</div>
+              </div>
+            )
           )}
 
           <div>
@@ -218,21 +232,38 @@ const UpdateMatchResult = () => {
           <div className=''>
             {playerScoreInfo
               .filter((player) => player.Team === matchInfo.homeTeam.name)
+              .reduce((acc, player) => {
+                // Tìm cầu thủ đã có trong acc
+                const existingPlayer = acc.find(
+                  (p) => p.PlayerName === player.PlayerName
+                );
+
+                if (existingPlayer) {
+                  // Nếu cầu thủ đã có trong acc, thêm phút ghi bàn vào mảng phút của cầu thủ đó
+                  existingPlayer.Minutes.push(player.Minute);
+                } else {
+                  // Nếu cầu thủ chưa có, tạo mới một đối tượng cho cầu thủ đó
+                  acc.push({
+                    PlayerName: player.PlayerName,
+                    Minutes: [player.Minute],
+                  });
+                }
+
+                return acc;
+              }, []) // Khởi tạo mảng trống cho reduce
               .map((player, index) => (
                 <div
                   key={index}
                   className='flex items-center gap-4 bg-gray-100 p-2 rounded-md'
                 >
-                  <div className='text-purple-600 font-bold'>
-                    {player.Minute}'
-                  </div>
                   <div>
                     <p className='font-medium'>{player.PlayerName}</p>
                     <p className='text-sm text-gray-500'>
-                      {player.ScoreType === 'Bình thường'
-                        ? ''
-                        : player.ScoreType}
+                      {/* Hiển thị loại bàn thắng nếu cần */}
                     </p>
+                  </div>
+                  <div className='text-purple-600 font-bold'>
+                    {player.Minutes.join(', ')}'
                   </div>
                 </div>
               ))}
@@ -248,31 +279,48 @@ const UpdateMatchResult = () => {
             </div>
           )}
           {/* Danh sách cầu thủ ghi bàn của đội khách */}
-          <div className=''>
+          <div>
             {playerScoreInfo
               .filter((player) => player.Team === matchInfo.awayTeam.name)
+              .reduce((acc, player) => {
+                // Tìm cầu thủ đã có trong acc
+                const existingPlayer = acc.find(
+                  (p) => p.PlayerName === player.PlayerName
+                );
+
+                if (existingPlayer) {
+                  // Nếu cầu thủ đã có trong acc, thêm phút ghi bàn vào mảng phút của cầu thủ đó
+                  existingPlayer.Minutes.push(player.Minute);
+                } else {
+                  // Nếu cầu thủ chưa có, tạo mới một đối tượng cho cầu thủ đó
+                  acc.push({
+                    PlayerName: player.PlayerName,
+                    Minutes: [player.Minute],
+                  });
+                }
+
+                return acc;
+              }, []) // Khởi tạo mảng trống cho reduce
               .map((player, index) => (
                 <div
                   key={index}
                   className='flex items-center gap-4 bg-gray-100 p-2 rounded-md'
                 >
-                  <div className='text-purple-600 font-bold'>
-                    {player.Minute}'
-                  </div>
                   <div>
                     <p className='font-medium'>{player.PlayerName}</p>
                     <p className='text-sm text-gray-500'>
-                      {player.ScoreType === 'Bình thường'
-                        ? ''
-                        : player.ScoreType}
+                      {/* Hiển thị loại bàn thắng nếu cần */}
                     </p>
+                  </div>
+                  <div className='text-purple-600 font-bold'>
+                    {player.Minutes.join(', ')}'
                   </div>
                 </div>
               ))}
           </div>
         </div>
 
-        {user?.Role === 'Admin' && (
+        {matchStatus === 'Đã diễn ra' && user?.Role === 'Admin' && (
           <div className='flex flex-col items-center gap-4'>
             <Button
               onClick={() => showModal('goal')}

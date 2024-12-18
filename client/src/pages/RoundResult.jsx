@@ -76,8 +76,19 @@ const RoundResult = () => {
       title: 'Tỷ số',
       dataIndex: 'score',
       key: 'score',
-      render: (_, record) =>
-        `${record.homeScore ?? '-'} - ${record.awayScore ?? '-'}`,
+      render: (_, record) => {
+        // Get the current time and match time
+        const currentTime = new Date();
+        const matchTime = new Date(record.date);
+
+        // If the match is in the future, show ?-?
+        if (matchTime > currentTime) {
+          return `?-?`;
+        }
+
+        // Otherwise, show the actual score
+        return `${record.homeScore ?? '-'} - ${record.awayScore ?? '-'}`;
+      },
     },
   ];
 

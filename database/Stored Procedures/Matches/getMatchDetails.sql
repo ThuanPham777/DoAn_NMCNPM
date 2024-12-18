@@ -6,13 +6,13 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Lấy tỷ số trận đấu
+    -- Lấy tỷ số trận đấu (số lượng bàn thắng của mỗi đội)
     SELECT DISTINCT
         HT.TeamName AS HomeTeamName,
         AT.TeamName AS AwayTeamName,
         (
-            SELECT COUNT(DISTINCT LS.PlayerID)
-        -- Đếm số lượng cầu thủ ghi bàn (tránh trùng lặp)
+            SELECT COUNT(LS.ScoreTime)
+        -- Đếm số bàn thắng của đội nhà
         FROM Listscore LS
         WHERE LS.MatchID = @MatchID
             AND LS.RoundID = @RoundID
@@ -25,8 +25,8 @@ BEGIN
                 )
         ) AS HomeScore,
         (
-            SELECT COUNT(DISTINCT LS.PlayerID)
-        -- Đếm số lượng cầu thủ ghi bàn (tránh trùng lặp)
+            SELECT COUNT(LS.ScoreTime)
+        -- Đếm số bàn thắng của đội khách
         FROM Listscore LS
         WHERE LS.MatchID = @MatchID
             AND LS.RoundID = @RoundID
@@ -61,4 +61,3 @@ BEGIN
     ORDER BY LS.ScoreTime;
 -- Sắp xếp theo phút ghi bàn
 END;
-
