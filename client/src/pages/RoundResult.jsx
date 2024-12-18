@@ -3,6 +3,7 @@ import { Button, Table, Pagination, message } from 'antd';
 import { IoFlagOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const RoundResult = () => {
   const navigate = useNavigate();
@@ -104,6 +105,11 @@ const RoundResult = () => {
   const handleRoundChange = (page) => {
     setCurrentRound(page);
   };
+
+  if (!selectedTournament) {
+    toast.warning('Please select a tournament');
+    return;
+  }
 
   return (
     <div>

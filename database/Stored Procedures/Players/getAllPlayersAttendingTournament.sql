@@ -1,12 +1,15 @@
 
-CREATE PROCEDURE getAllPlayers
+CREATE PROCEDURE getAllPlayersAttendingTournament
+    @TournamentID INT
 AS
 BEGIN
     BEGIN TRY
         SELECT
         *
     FROM
-        Player;
+        Player p
+        JOIN TeamAttendTournament tat on p.TeamID = tat.TeamID
+    WHERE tat.TournamentID = @TournamentID;
     END TRY
     BEGIN CATCH
         -- Handle error

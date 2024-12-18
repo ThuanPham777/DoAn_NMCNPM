@@ -7,7 +7,7 @@ exports.addTeam = async (req, res, next) => {
     const TeamLogo = req.file?.filename; // Get the uploaded file name from multer
     const UserID = parseInt(req.user.UserID, 10);
 
-    if (!TeamName || !Stadium || !Coach || !TeamLogo || isNaN(UserID)) {
+    if (!TeamName || !Stadium || !Coach || isNaN(UserID)) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 

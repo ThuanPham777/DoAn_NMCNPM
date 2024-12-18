@@ -113,7 +113,7 @@ const MyTeamDetail = () => {
             type='primary'
             className='bg-[#56FF61] hover:bg-[#3eeb4a]'
             onClick={() => {
-              if (players.length === rules.MaxPlayer) {
+              if (rules && players.length === rules.MaxPlayer) {
                 toast.error(`Số cầu thủ tối đa là ${rules.MaxPlayer}`);
                 return;
               }

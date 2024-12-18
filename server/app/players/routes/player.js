@@ -14,7 +14,10 @@ router.post(
 
 router.put('/team/:TeamID/edit/:PlayerID', playerController.updatePlayer);
 
-router.get('/', playerController.getAllPlayers);
+router.get(
+  '/tournament/:TournamentID',
+  playerController.getAllPlayersAttendingTournament
+);
 
 router.get('/team/:TeamID', playerController.getAllPlayersOfTeam);
 

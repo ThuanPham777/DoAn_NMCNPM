@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const Rank = () => {
   const [topPlayers, setTopPlayers] = useState([]);
   const { selectedTournament } = useSelector((state) => state.tournament);
-  console.log('selectedTournament', selectedTournament.TournamentID);
+  //console.log('selectedTournament', selectedTournament.TournamentID);
 
   useEffect(() => {
+    if (!selectedTournament) {
+      toast.warning('Please select a tournament');
+      return;
+    }
     const fetchTopScorePlayers = async () => {
       try {
         const response = await fetch(
@@ -27,7 +32,7 @@ const Rank = () => {
     };
 
     fetchTopScorePlayers();
-  }, [selectedTournament.TournamentID]);
+  }, [selectedTournament]);
 
   return (
     <>

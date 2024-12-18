@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 
 const TournamentRuleForm = () => {
   const user = useSelector((state) => state.user.user);
+  const { selectedTournament } = useSelector((state) => state.tournament);
+
   const [formData, setFormData] = useState({
     MaxTeam: 20,
     MinTeam: 15,
@@ -19,7 +21,7 @@ const TournamentRuleForm = () => {
     RankPriorityOrder: 'Điểm - Hiệu số - Tổng bàn thắng - Đối kháng',
   });
 
-  const { selectedTournament } = useSelector((state) => state.tournament);
+  const [isEditable, setIsEditable] = useState(true); // Trạng thái chỉnh sửa
 
   const labelMapping = {
     MaxTeam: 'Số đội tối đa',
@@ -58,6 +60,16 @@ const TournamentRuleForm = () => {
 
     if (selectedTournament?.TournamentID) {
       fetchRule();
+    }
+  }, [selectedTournament]);
+
+  useEffect(() => {
+    if (selectedTournament?.StartDate) {
+      const currentDate = new Date();
+      const startDate = new Date(selectedTournament.StartDate);
+      if (currentDate >= startDate) {
+        setIsEditable(false); // Form không thể chỉnh sửa
+      }
     }
   }, [selectedTournament]);
 
@@ -126,31 +138,19 @@ const TournamentRuleForm = () => {
           {Object.keys(formData).map((key) => (
             <div key={key}>
               <label>{labelMapping[key] || key}</label>
-              {key === 'RankPriorityOrder' ? (
-                <input
-                  type='text'
-                  name={key}
-                  value={formData[key]}
-                  onChange={handleChange}
-                  disabled={!isAdmin} // Disable nếu không phải Admin
-                  className='border p-2 w-full rounded-md'
-                />
-              ) : (
-                <input
-                  type='number'
-                  name={key}
-                  value={formData[key]}
-                  onChange={handleChange}
-                  disabled={!isAdmin} // Disable nếu không phải Admin
-                  className='border p-2 w-full rounded-md'
-                />
-              )}
+              <input
+                type={key === 'RankPriorityOrder' ? 'text' : 'number'}
+                name={key}
+                value={formData[key]}
+                onChange={handleChange}
+                disabled={!isEditable || !isAdmin} // Disable nếu không được chỉnh sửa hoặc không phải Admin
+                className='border p-2 w-full rounded-md'
+              />
             </div>
           ))}
         </div>
 
-        {/* Hiển thị nút chỉ khi là Admin */}
-        {isAdmin && (
+        {isEditable && isAdmin && (
           <div className='flex gap-4 justify-center'>
             <button
               type='submit'

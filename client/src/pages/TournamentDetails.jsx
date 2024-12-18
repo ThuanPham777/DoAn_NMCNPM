@@ -103,7 +103,7 @@ const TournamentDetails = () => {
   }, [selectedTournament]);
 
   const handleRegisterClick = () => {
-    if (teamAttendTournament.length === rules.MaxTeam) {
+    if (rules && teamAttendTournament.length === rules.MaxTeam) {
       toast.error(
         `Số đội tối đa đăng ký tham gia giải đấu là ${rules.MaxTeam}`
       );

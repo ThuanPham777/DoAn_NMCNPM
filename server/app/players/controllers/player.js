@@ -103,13 +103,17 @@ exports.getAllPlayersOfTeam = async (req, res) => {
   }
 };
 
-exports.getAllPlayers = async (req, res) => {
+exports.getAllPlayersAttendingTournament = async (req, res) => {
   try {
+    const TournamentID = parseInt(req.params.TournamentID);
     // Kết nối đến cơ sở dữ liệu
     const pool = await db();
 
     // Gọi stored procedure
-    const result = await pool.request().execute('getAllPlayers');
+    const result = await pool
+      .request()
+      .input('TournamentID', TournamentID)
+      .execute('getAllPlayersAttendingTournament');
 
     res.json({
       message: 'success',

@@ -7,7 +7,7 @@ exports.addTournament = async (req, res, next) => {
     const { TournamentName, StartDate, EndDate } = req.body;
     const TournamentLogo = req.file ? req.file.filename : null;
 
-    if (!TournamentName || !StartDate || !EndDate || !TournamentLogo) {
+    if (!TournamentName || !StartDate || !EndDate) {
       throw new AppError('Missing required fields', 400);
     }
 

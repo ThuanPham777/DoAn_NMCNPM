@@ -3,6 +3,7 @@ import { Button, Table, Pagination, message } from 'antd';
 import { IoFlagOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const MatchSchedule = () => {
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ const MatchSchedule = () => {
   const createSchedule = async () => {
     // check rule
 
-    if (teams.length < rules.MinTeam) {
+    if (rules && teams.length < rules.MinTeam) {
       message.error(
         'Số đội bóng phải ít nhất' + rules.MinTeam + 'để tạo lịch thi đấu.'
       );
@@ -168,6 +169,11 @@ const MatchSchedule = () => {
         ]
       : []),
   ];
+
+  if (!selectedTournament) {
+    toast.warning('Please select a tournament');
+    return;
+  }
 
   return (
     <div>

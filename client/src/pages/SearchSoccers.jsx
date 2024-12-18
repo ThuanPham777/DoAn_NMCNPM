@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Input } from 'antd';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const { Search } = Input;
 
@@ -23,16 +25,25 @@ const columns = [
 const SearchSoccers = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const { selectedTournament } = useSelector((state) => state.tournament);
 
+  // những cầu thủ tham gia giải đấu
   useEffect(() => {
-    fetch('http://localhost:3000/api/player')
+    if (!selectedTournament) {
+      toast.warning('Please select a tournament');
+      return;
+    }
+
+    fetch(
+      `http://localhost:3000/api/player/tournament/${selectedTournament.TournamentID}`
+    )
       .then((response) => response.json())
       .then((result) => {
         setData(result.data);
         setFilteredData(result.data); // Initially show all data
       })
       .catch((error) => console.error('Error loading data:', error));
-  }, []);
+  }, [selectedTournament]);
 
   const handleSearch = (value) => {
     const filtered = data.filter((player) =>
