@@ -8,6 +8,7 @@ const ruleRoutes = require('./app/rule/routes/rule');
 const scheduleRoutes = require('./app/schedules/routes/schedule');
 const matchRoutes = require('./app/matches/routes/match');
 const roundRoutes = require('./app/rounds/routes/round');
+const reportRoutes = require('./app/report/routes/reports');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -50,5 +51,6 @@ app.use('/api/rule', ruleRoutes);
 app.use('/api/schedule', scheduleRoutes);
 app.use('/api/match', matchRoutes);
 app.use('/api/round', roundRoutes);
+app.use('/api/reports', reportRoutes);
 
 module.exports = app;
