@@ -1,9 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { formatDate } from '../../utils';
 
 const AddSoccerForm = ({ player, TeamID }) => {
+  const [rules, setRules] = useState();
+  const { selectedTournament } = useSelector((state) => state.tournament);
+
+  useEffect(() => {
+    try {
+      const fetchRule = async () => {
+        const response = await fetch(
+          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch rule');
+        }
+        const result = await response.json();
+        console.log('rules: ', result.data);
+        setRules(result.data);
+      };
+
+      fetchRule();
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }, []);
+
   const navigate = useNavigate();
   const {
     control,
@@ -83,6 +106,36 @@ const AddSoccerForm = ({ player, TeamID }) => {
     }
   };
 
+  // Validate DateOfBirth for age range
+  const validateAge = (value) => {
+    const birthDate = new Date(value);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    if (rules) {
+      if (age < rules.MinAgePlayer) {
+        setError('DateOfBirth', {
+          message: `Tuổi không được nhỏ hơn ${rules.MinAgePlayer}`,
+        });
+        return false;
+      }
+      if (age > rules.MaxAgePlayer) {
+        setError('DateOfBirth', {
+          message: `Tuổi không được lớn hơn ${rules.MaxAgePlayer}`,
+        });
+        return false;
+      }
+    }
+    return true;
+  };
+
   return (
     <div className='flex justify-center items-start mt-10'>
       <div className='max-w-lg mx-auto p-6 shadow-lg rounded-lg bg-white'>
@@ -109,13 +162,15 @@ const AddSoccerForm = ({ player, TeamID }) => {
             )}
           </div>
 
-          {/* Date of Birth */}
           <div className='mb-4'>
             <label className='block'>Ngày sinh</label>
             <Controller
               name='DateOfBirth'
               control={control}
-              rules={{ required: 'Ngày sinh là bắt buộc' }}
+              rules={{
+                required: 'Ngày sinh là bắt buộc',
+                validate: validateAge, // Validate age here
+              }}
               render={({ field }) => (
                 <input
                   type='date'

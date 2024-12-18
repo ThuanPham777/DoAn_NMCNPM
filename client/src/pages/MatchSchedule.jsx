@@ -13,6 +13,27 @@ const MatchSchedule = () => {
   const [loading, setLoading] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [teams, setTeams] = useState([]);
+  const [rules, setRules] = useState();
+
+  useEffect(() => {
+    try {
+      const fetchRule = async () => {
+        const response = await fetch(
+          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch rule');
+        }
+        const result = await response.json();
+        console.log('rules: ', result.data);
+        setRules(result.data);
+      };
+
+      fetchRule();
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }, []);
 
   const fetchTeams = async () => {
     try {
@@ -58,6 +79,15 @@ const MatchSchedule = () => {
 
   // Hàm tạo lịch thi đấu
   const createSchedule = async () => {
+    // check rule
+
+    if (teams.length < rules.MinTeam) {
+      message.error(
+        'Số đội bóng phải ít nhất' + rules.MinTeam + 'để tạo lịch thi đấu.'
+      );
+      return;
+    }
+
     if (!selectedTournament || !teams.length) return;
 
     // Tính số vòng đấu cần thiết từ số đội tham gia

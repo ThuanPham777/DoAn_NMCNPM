@@ -20,9 +20,31 @@ const UpdateMatchResult = () => {
   const { selectedTournament } = useSelector((state) => state.tournament);
   const [matchScoreInfo, setMatchScoreInfo] = useState(null);
   const [playerScoreInfo, setPlayersScoreInfo] = useState([]);
-
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalType, setModalType] = useState(null);
+
+  const [rules, setRules] = useState();
+
+  useEffect(() => {
+    try {
+      const fetchRule = async () => {
+        const response = await fetch(
+          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch rule');
+        }
+        const result = await response.json();
+        console.log('rules: ', result.data);
+        setRules(result.data);
+      };
+
+      fetchRule();
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }, []);
+
   const matchInfo = {
     homeTeam: {
       name: match.team1Name,
@@ -399,7 +421,7 @@ const UpdateMatchResult = () => {
                   placeholder='Chọn phút ghi bàn'
                   onChange={handleScoreTimeChange}
                 >
-                  {Array.from({ length: 97 }, (_, i) => (
+                  {Array.from({ length: rules.MaxTimeScore + 1 }, (_, i) => (
                     <Option
                       key={i}
                       value={i}

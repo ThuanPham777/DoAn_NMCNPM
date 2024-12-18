@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Table, Input, Button, Spin, Alert } from 'antd';
+import { toast } from 'react-toastify';
 
 const { Search } = Input;
 
@@ -13,6 +14,27 @@ const MyTeamDetail = () => {
   const { myTeam } = location.state || {}; // Lấy dữ liệu `team`
   //console.log('myTeam', myTeam);
   const navigate = useNavigate();
+  const [rules, setRules] = useState();
+
+  useEffect(() => {
+    try {
+      const fetchRule = async () => {
+        const response = await fetch(
+          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch rule');
+        }
+        const result = await response.json();
+        console.log('rules: ', result.data);
+        setRules(result.data);
+      };
+
+      fetchRule();
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchPlayersOfTeam = async () => {
@@ -90,7 +112,13 @@ const MyTeamDetail = () => {
           <Button
             type='primary'
             className='bg-[#56FF61] hover:bg-[#3eeb4a]'
-            onClick={() => navigate(`/my-team-detail/${TeamID}/add-soccer`)}
+            onClick={() => {
+              if (players.length === rules.MaxPlayer) {
+                toast.error(`Số cầu thủ tối đa là ${rules.MaxPlayer}`);
+                return;
+              }
+              navigate(`/my-team-detail/${TeamID}/add-soccer`);
+            }}
           >
             Thêm cầu thủ
           </Button>

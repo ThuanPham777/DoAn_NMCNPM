@@ -2,7 +2,7 @@ const db = require('../../../config/db');
 
 exports.getRule = async (req, res) => {
   try {
-    const { TournamentID } = parseInt(req.params.TournamentID, 10);
+    const TournamentID = parseInt(req.params.TournamentID, 10);
     const pool = await db(); // Kết nối đến SQL Server
     const result = await pool
       .request()
@@ -10,7 +10,8 @@ exports.getRule = async (req, res) => {
       .execute('getRule'); // Gọi stored procedure
 
     // Gửi dữ liệu trả về từ database
-    res.status(200).json({ data: result.recordset });
+    console.log(result.recordset[0]);
+    res.status(200).json({ data: result.recordset[0] });
   } catch (error) {
     console.error('Error executing getRule:', error);
     res.status(500).json({ message: 'Lỗi khi lấy dữ liệu từ cơ sở dữ liệu.' });

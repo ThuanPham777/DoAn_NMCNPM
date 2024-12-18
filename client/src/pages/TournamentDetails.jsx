@@ -15,9 +15,29 @@ const TournamentDetails = () => {
   const [loading, setLoading] = useState(true); // State để quản lý loading
   const [filteredTeams, setFilteredTeams] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const location = useLocation();
   const { tournament } = location.state || null;
+  const [rules, setRules] = useState();
+
+  useEffect(() => {
+    try {
+      const fetchRule = async () => {
+        const response = await fetch(
+          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch rule');
+        }
+        const result = await response.json();
+        console.log('rules: ', result.data);
+        setRules(result.data);
+      };
+
+      fetchRule();
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }, []);
 
   const fetchMyTeams = async () => {
     const token = localStorage.getItem('token');
@@ -83,6 +103,12 @@ const TournamentDetails = () => {
   }, [selectedTournament]);
 
   const handleRegisterClick = () => {
+    if (teamAttendTournament.length === rules.MaxTeam) {
+      toast.error(
+        `Số đội tối đa đăng ký tham gia giải đấu là ${rules.MaxTeam}`
+      );
+      return;
+    }
     setIsModalOpen(true);
   };
 
