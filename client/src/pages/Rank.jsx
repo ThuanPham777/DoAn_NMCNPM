@@ -1,216 +1,87 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const Rank = () => {
-  const teams = [
-    {
-      rank: 1,
-      logo: '/assets/img/teams/picture01.png',
-      team: 'Liverpool',
-      played: 11,
-      wins: 9,
-      draws: 1,
-      losses: 1,
-      goalsFor: 21,
-      goalsAgainst: 6,
-      goalDifference: 15,
-      points: 28,
-    },
-    {
-      rank: 2,
-      logo: './',
-      team: 'Man City',
-      played: 11,
-      wins: 7,
-      draws: 2,
-      losses: 2,
-      goalsFor: 22,
-      goalsAgainst: 13,
-      goalDifference: 9,
-      points: 23,
-    },
-    {
-      rank: 3,
-      logo: './',
-      team: 'Chelsea',
-      played: 11,
-      wins: 5,
-      draws: 4,
-      losses: 2,
-      goalsFor: 21,
-      goalsAgainst: 8,
-      goalDifference: 13,
-      points: 19,
-    },
-    {
-      rank: 4,
-      logo: './',
-      team: 'Arsenal',
-      played: 11,
-      wins: 5,
-      draws: 4,
-      losses: 2,
-      goalsFor: 18,
-      goalsAgainst: 12,
-      goalDifference: 6,
-      points: 19,
-    },
-    {
-      rank: 5,
-      logo: './',
-      team: 'Nottm Forest',
-      played: 11,
-      wins: 5,
-      draws: 4,
-      losses: 2,
-      goalsFor: 15,
-      goalsAgainst: 10,
-      goalDifference: 5,
-      points: 19,
-    },
-    {
-      rank: 6,
-      logo: './',
-      team: 'Brighton',
-      played: 11,
-      wins: 5,
-      draws: 4,
-      losses: 2,
-      goalsFor: 19,
-      goalsAgainst: 15,
-      goalDifference: 4,
-      points: 19,
-    },
-    {
-      rank: 7,
-      logo: './',
-      team: 'Fulham',
-      played: 11,
-      wins: 5,
-      draws: 3,
-      losses: 3,
-      goalsFor: 16,
-      goalsAgainst: 13,
-      goalDifference: 3,
-      points: 18,
-    },
-    {
-      rank: 8,
-      logo: './',
-      team: 'Newcastle',
-      played: 11,
-      wins: 5,
-      draws: 3,
-      losses: 3,
-      goalsFor: 13,
-      goalsAgainst: 11,
-      goalDifference: 2,
-      points: 18,
-    },
-    {
-      rank: 9,
-      logo: './',
-      team: 'Aston Villa',
-      played: 11,
-      wins: 4,
-      draws: 3,
-      losses: 4,
-      goalsFor: 17,
-      goalsAgainst: 10,
-      goalDifference: 7,
-      points: 16,
-    },
-    {
-      rank: 10,
-      logo: './',
-      team: 'Tottenham',
-      played: 11,
-      wins: 5,
-      draws: 1,
-      losses: 5,
-      goalsFor: 23,
-      goalsAgainst: 13,
-      goalDifference: 10,
-      points: 16,
-    },
-  ];
+  const { selectedTournament } = useSelector((state) => state.tournament);
+  const [rankings, setRankings] = useState();
+
+  useEffect(() => {
+    if (!selectedTournament) {
+      toast.warning('Please select a tournament');
+      return;
+    }
+    const fetchTournamentRank = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/reports/tournament/${selectedTournament.TournamentID}/rank`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch tournament rank');
+        }
+
+        const result = await response.json();
+        console.log('tournament rank: ', result.data);
+        setRankings(result.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchTournamentRank();
+  }, []);
 
   return (
-    <>
-      <h1 className='text-2xl font-bold mb-8'>Bảng xếp hạng</h1>
-      <div className='overflow-x-auto'>
-        <table className='min-w-full border-collapse text-sm text-left text-gray-700'>
-          <thead>
-            <tr className='bg-gray-100'>
-              <th className='border-b px-4 py-2 font-semibold'>Câu lạc bộ</th>
-              <th className='border-b px-4 py-2 font-semibold text-center'>
-                ĐĐ
-              </th>
-              <th className='border-b px-4 py-2 font-semibold text-center'>
-                Thắng
-              </th>
-              <th className='border-b px-4 py-2 font-semibold text-center'>
-                H
-              </th>
-              <th className='border-b px-4 py-2 font-semibold text-center'>
-                Thua
-              </th>
-              <th className='border-b px-4 py-2 font-semibold text-center'>
-                BT
-              </th>
-              <th className='border-b px-4 py-2 font-semibold text-center'>
-                SBT
-              </th>
-              <th className='border-b px-4 py-2 font-semibold text-center'>
-                HS
-              </th>
-              <th className='border-b px-4 py-2 font-semibold text-center'>
-                Đ
-              </th>
+    <div className='p-4 bg-gray-100 min-h-screen'>
+      <h1 className='text-3xl font-bold mb-8 text-center text-gray-800'>
+        Bảng xếp hạng
+      </h1>
+      <div className='overflow-x-auto shadow-md rounded-lg'>
+        <table className='table-auto w-full text-sm text-left text-gray-700'>
+          <thead className='text-xs uppercase bg-gray-800 text-white'>
+            <tr>
+              <th className='px-6 py-3'>Câu lạc bộ</th>
+              <th className='px-6 py-3'>ĐĐ</th>
+              <th className='px-6 py-3'>Thắng</th>
+              <th className='px-6 py-3'>H</th>
+              <th className='px-6 py-3'>Thua</th>
+              <th className='px-6 py-3'>BT</th>
+              <th className='px-6 py-3'>SBT</th>
+              <th className='px-6 py-3'>HS</th>
+              <th className='px-6 py-3'>Đ</th>
             </tr>
           </thead>
           <tbody>
-            {teams.map((team, index) => (
-              <tr
-                key={index}
-                className='hover:bg-gray-50'
-              >
-                <td className='border-b px-4 py-2 flex items-center gap-2'>
-                  <span className='font-medium'>{team.rank}</span>
-                  <span>
+            {rankings &&
+              rankings.map((team, index) => (
+                <tr
+                  key={team.teamID}
+                  className={`${
+                    index % 2 === 0 ? 'bg-gray-100' : 'bg-white'
+                  } hover:bg-gray-200`}
+                >
+                  <td className='px-6 py-3 flex items-center gap-2'>
+                    {index + 1}
                     <img
-                      src={team.logo}
-                      alt=''
-                      className='w-8 h-8 '
+                      src={`http://localhost:3000/uploads/teams/${team.teamLogo}`}
+                      alt={team.name}
+                      className='w-8 h-8 rounded-full'
                     />
-                  </span>
-                  <span>{team.team}</span>
-                </td>
-                <td className='border-b px-4 py-2 text-center'>
-                  {team.played}
-                </td>
-                <td className='border-b px-4 py-2 text-center'>{team.wins}</td>
-                <td className='border-b px-4 py-2 text-center'>{team.draws}</td>
-                <td className='border-b px-4 py-2 text-center'>
-                  {team.losses}
-                </td>
-                <td className='border-b px-4 py-2 text-center'>
-                  {team.goalsFor}
-                </td>
-                <td className='border-b px-4 py-2 text-center'>
-                  {team.goalsAgainst}
-                </td>
-                <td className='border-b px-4 py-2 text-center'>
-                  {team.goalDifference}
-                </td>
-                <td className='border-b px-4 py-2 text-center font-bold'>
-                  {team.points}
-                </td>
-              </tr>
-            ))}
+                    {team.name}
+                  </td>
+                  <td className='px-6 py-3'>{team.played}</td>
+                  <td className='px-6 py-3'>{team.wins}</td>
+                  <td className='px-6 py-3'>{team.draws}</td>
+                  <td className='px-6 py-3'>{team.losses}</td>
+                  <td className='px-6 py-3'>{team.goalsFor}</td>
+                  <td className='px-6 py-3'>{team.goalsAgainst}</td>
+                  <td className='px-6 py-3'>{team.goalDifference}</td>
+                  <td className='px-6 py-3 font-semibold'>{team.points}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 };
 

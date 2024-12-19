@@ -9,4 +9,9 @@ router.get(
   reportController.getTopScorePlayers
 );
 
+router.get(
+  '/tournament/:TournamentID/rank',
+  reportController.getTournamentRank
+);
+
 module.exports = router;
