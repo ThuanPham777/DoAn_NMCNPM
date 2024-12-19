@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Table, Pagination, message } from 'antd';
+import moment from 'moment';
+import {
+  Button,
+  Table,
+  Pagination,
+  message,
+  Modal,
+  Input,
+  DatePicker,
+} from 'antd';
 import { IoFlagOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -15,6 +24,9 @@ const MatchSchedule = () => {
   const [currentRound, setCurrentRound] = useState(1);
   const [teams, setTeams] = useState([]);
   const [rules, setRules] = useState();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentMatch, setCurrentMatch] = useState(null);
+  const [newMatchTime, setNewMatchTime] = useState(null);
 
   useEffect(() => {
     try {
@@ -124,6 +136,48 @@ const MatchSchedule = () => {
     }
   };
 
+  const handleEditClick = (match) => {
+    setCurrentMatch(match);
+    console.log('match: ' + JSON.stringify(match, null, 2));
+    setNewMatchTime(moment(match.date)); // Ensure it’s a moment object
+    setIsModalVisible(true);
+  };
+
+  const handleModalOk = async () => {
+    if (!newMatchTime) {
+      message.error('Please select a new time for the match');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/schedule/tournament/${selectedTournament.TournamentID}/round/${currentMatch.roundID}/match/${currentMatch.matchID}/update`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: newMatchTime }),
+        }
+      );
+
+      if (response.ok) {
+        message.success('Match time updated successfully!');
+        fetchSchedule(); // Refresh the schedule
+        setIsModalVisible(false);
+      } else {
+        const error = await response.json();
+        message.error(error.message || 'Failed to update match time.');
+      }
+    } catch (error) {
+      console.error('Error updating match:', error);
+      message.error('An error occurred while updating the match time.');
+    }
+  };
+
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
+    setNewMatchTime(null); // Reset the new match time
+  };
+
   // Lấy lịch thi đấu khi component mount hoặc selectedTournament thay đổi
   useEffect(() => {
     if (selectedTournament) {
@@ -158,7 +212,7 @@ const MatchSchedule = () => {
                   Cập nhật kết quả
                 </Button>
                 <Button
-                  onClick={() => navigate(`/edit-match/${record.matchID}`)}
+                  onClick={() => handleEditClick(record)}
                   type='primary'
                 >
                   Chỉnh sửa
@@ -217,6 +271,22 @@ const MatchSchedule = () => {
           />
         </div>
       )}
+
+      {/* Modal for editing match */}
+      <Modal
+        title='Chỉnh sửa thời gian trận đấu'
+        visible={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        confirmLoading={loading}
+      >
+        <DatePicker
+          showTime
+          value={newMatchTime}
+          onChange={(date) => setNewMatchTime(date)}
+          format='YYYY-MM-DD HH:mm:ss'
+        />
+      </Modal>
     </div>
   );
 };

@@ -188,3 +188,43 @@ exports.getSchedule = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+exports.updateDatetimeOfMatch = async (req, res) => {
+  try {
+    const TournamentID = parseInt(req.params.TournamentID, 10);
+    const RoundID = parseInt(req.params.RoundID, 10);
+    const MatchID = parseInt(req.params.MatchID, 10);
+    const { date } = req.body;
+
+    // Convert the date to a format compatible with your database (e.g., using moment.js or directly from the client)
+    const newMatchDate = new Date(date); // Ensure the date is in a valid Date format
+
+    // Initialize database connection
+    const pool = await db();
+
+    // Update the MatchDate for the specified match
+    const result = await pool
+      .request()
+      .input('TournamentID', TournamentID)
+      .input('RoundID', RoundID)
+      .input('MatchID', MatchID)
+      .input('MatchDate', newMatchDate) // Provide the new match date
+      .query(`
+        UPDATE Match
+        SET MatchDate = @MatchDate
+        WHERE TournamentID = @TournamentID
+        AND RoundID = @RoundID
+        AND MatchID = @MatchID
+      `);
+
+    // Check if the update was successful
+    if (result.rowsAffected[0] > 0) {
+      res.status(200).json({ message: 'Match date updated successfully' });
+    } else {
+      res.status(404).json({ message: 'Match not found' });
+    }
+  } catch (error) {
+    console.error('Error updating match datetime:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
