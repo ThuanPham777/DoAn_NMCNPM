@@ -68,6 +68,16 @@ exports.addPlayer = async (req, res) => {
     });
   } catch (error) {
     console.error('Error adding player:', error);
+
+    // Nếu lỗi từ SQL Server (ví dụ lỗi từ trigger)
+    console.log('error number:', error.number);
+    if (error.number === 50000) {
+      // Lỗi từ RAISERROR trong SQL Server
+      return res.status(400).json({
+        message: error.message, // Lấy thông báo lỗi từ trigger
+      });
+    }
+
     return res.status(500).json({
       message: 'Internal server error',
       error: error.message,

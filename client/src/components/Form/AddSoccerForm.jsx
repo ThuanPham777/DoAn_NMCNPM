@@ -2,14 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const AddSoccerForm = ({ player, TeamID }) => {
   const [rules, setRules] = useState();
   const { selectedTournament } = useSelector((state) => state.tournament);
+  const [players, setPlayers] = useState();
+  const [theNumberOfForeignPlayers, setTheNumberOfForeignPlayers] = useState(0); // Track foreign players
+
+  console.log('players', players);
 
   useEffect(() => {
-    try {
-      const fetchRule = async () => {
+    const fetchAllPlayersOfTeam = async () => {
+      try {
+        // Fetching data using fetch API
+        const response = await fetch(
+          `http://localhost:3000/api/player/team/${TeamID}`
+        );
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        // Parse the response as JSON
+        const result = await response.json();
+        setPlayers(result.data); // Lưu dữ liệu vào state myTeams
+        console.log('myTeams: ' + result.data);
+      } catch (error) {
+        console.error('Error fetching MyTeams:', error);
+      }
+    };
+
+    fetchAllPlayersOfTeam();
+  }, []);
+
+  console.log('theNumberOfForeignPlayers', theNumberOfForeignPlayers);
+
+  useEffect(() => {
+    const fetchRule = async () => {
+      try {
         const response = await fetch(
           `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
         );
@@ -17,21 +48,31 @@ const AddSoccerForm = ({ player, TeamID }) => {
           throw new Error('Failed to fetch rule');
         }
         const result = await response.json();
-        console.log('rules: ', result.data);
-        setRules(result.data);
-      };
-
-      fetchRule();
-    } catch (error) {
-      console.error('Error loading data:', error);
-    }
-  }, []);
+        console.log('rules: ', result?.data);
+        setRules(result?.data);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+    fetchRule();
+  }, [selectedTournament]);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (players && Array.isArray(players)) {
+      const countForeignPlayers = players.reduce((total, player) => {
+        return player.PlayerType === 'Ngoài nước' ? total + 1 : total;
+      }, 0);
+      setTheNumberOfForeignPlayers(countForeignPlayers);
+    }
+  }, [players]);
+
   const {
     control,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm();
   const [image, setImage] = useState(null);
@@ -40,8 +81,6 @@ const AddSoccerForm = ({ player, TeamID }) => {
   useEffect(() => {
     if (player) {
       setValue('PlayerName', player.PlayerName);
-
-      // Chuyển đổi ngày tháng về định dạng YYYY-MM-DD
       const formatDate = (date) => {
         const d = new Date(date);
         const year = d.getFullYear();
@@ -49,37 +88,43 @@ const AddSoccerForm = ({ player, TeamID }) => {
         const day = String(d.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
       };
-      setValue('DateOfBirth', formatDate(player.DateOfBirth)); // Ensure correct format
+      setValue('DateOfBirth', formatDate(player.DateOfBirth));
       setValue('JerseyNumber', player.JerseyNumber);
       setValue('HomeTown', player.HomeTown);
       setValue('PlayerType', player.PlayerType);
-
-      // If the player has an image, set it to the image state
       if (player.ProfileImg) {
-        setImage(player.ProfileImg); // Assuming ProfileImg is the URL or path to the image
+        setImage(player.ProfileImg);
       }
     }
   }, [player, setValue]);
 
   // Handle form submission
   const handleFormSubmit = async (data) => {
+    if (
+      data.PlayerType === 'Ngoài nước' &&
+      theNumberOfForeignPlayers >= (rules?.MaxForeignPlayer || 0)
+    ) {
+      toast.error(
+        `Số lượng cầu thủ ngoài nước không được vượt quá ${rules?.MaxForeignPlayer}`
+      );
+      return;
+    }
     const formData = new FormData();
     formData.append('PlayerName', data.PlayerName);
     formData.append('DateOfBirth', data.DateOfBirth);
     formData.append('JerseyNumber', data.JerseyNumber);
     formData.append('HomeTown', data.HomeTown);
     formData.append('PlayerType', data.PlayerType);
-
     if (image) {
       formData.append('ProfileImg', image);
     }
 
     try {
       const url = player
-        ? `http://localhost:3000/api/player/team/${TeamID}/edit/${player.PlayerID}` // Edit endpoint
-        : `http://localhost:3000/api/player/team/${TeamID}/add`; // Add endpoint
+        ? `http://localhost:3000/api/player/team/${TeamID}/edit/${player.PlayerID}`
+        : `http://localhost:3000/api/player/team/${TeamID}/add`;
 
-      const method = player ? 'PUT' : 'POST'; // Use PUT for editing, POST for adding
+      const method = player ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method: method,
@@ -89,6 +134,12 @@ const AddSoccerForm = ({ player, TeamID }) => {
       if (response.ok) {
         const responseData = await response.json();
         console.log('API Response:', responseData);
+        // Nếu có thông báo lỗi từ server (trigger hoặc lỗi khác)
+        if (responseData.message) {
+          alert(responseData.message); // Hiển thị thông báo lỗi từ backend lên UI
+        } else {
+          navigate('/'); // Navigate after successful form submission
+        }
         navigate('/'); // Navigate after successful form submission
       } else {
         console.error('Error submitting form:', response.statusText);
@@ -122,14 +173,18 @@ const AddSoccerForm = ({ player, TeamID }) => {
     if (rules) {
       if (age < rules.MinAgePlayer) {
         setError('DateOfBirth', {
+          type: 'manual',
           message: `Tuổi không được nhỏ hơn ${rules.MinAgePlayer}`,
         });
+        toast.error(`Tuổi không được nhỏ hơn ${rules.MinAgePlayer}`); // Toast lỗi tuổi
         return false;
       }
       if (age > rules.MaxAgePlayer) {
         setError('DateOfBirth', {
+          type: 'manual',
           message: `Tuổi không được lớn hơn ${rules.MaxAgePlayer}`,
         });
+        toast.error(`Tuổi không được lớn hơn ${rules.MaxAgePlayer}`); // Toast lỗi tuổi
         return false;
       }
     }
@@ -162,6 +217,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
             )}
           </div>
 
+          {/* Date of Birth */}
           <div className='mb-4'>
             <label className='block'>Ngày sinh</label>
             <Controller

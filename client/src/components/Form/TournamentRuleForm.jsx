@@ -5,7 +5,8 @@ const TournamentRuleForm = () => {
   const user = useSelector((state) => state.user.user);
   const { selectedTournament } = useSelector((state) => state.tournament);
 
-  const [formData, setFormData] = useState({
+  // Dữ liệu mặc định của điều lệ giải
+  const defaultRules = {
     MaxTeam: 20,
     MinTeam: 15,
     MaxPlayer: 22,
@@ -19,10 +20,13 @@ const TournamentRuleForm = () => {
     MaxTimeScore: 96,
     NumberOfTypeScore: 3,
     RankPriorityOrder: 'Điểm - Hiệu số - Tổng bàn thắng - Đối kháng',
-  });
+  };
 
-  const [isEditable, setIsEditable] = useState(true); // Trạng thái chỉnh sửa
+  // Khởi tạo dữ liệu form với defaultRules
+  const [formData, setFormData] = useState(defaultRules);
+  const [loading, setLoading] = useState(true); // Trạng thái tải dữ liệu
 
+  // Lịch sử các label tương ứng với các trường trong form
   const labelMapping = {
     MaxTeam: 'Số đội tối đa',
     MinTeam: 'Số đội tối thiểu',
@@ -39,22 +43,31 @@ const TournamentRuleForm = () => {
     RankPriorityOrder: 'Thứ tự ưu tiên xếp hạng',
   };
 
+  // Lấy dữ liệu từ API khi TournamentID thay đổi
   useEffect(() => {
     const fetchRule = async () => {
+      setLoading(true); // Bắt đầu tải dữ liệu
       try {
         const response = await fetch(
           `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
         );
+
         if (response.ok) {
           const result = await response.json();
-          if (result.data.length > 0) {
+          if (result?.data) {
             setFormData(result.data);
           } else {
-            console.log('Không có dữ liệu từ API, sử dụng giá trị mặc định');
+            setFormData(defaultRules); // Nếu không có dữ liệu, dùng defaultRules
           }
+        } else {
+          console.error('Failed to fetch rule:', response.status);
+          setFormData(defaultRules); // Lỗi khi gọi API, sử dụng defaultRules
         }
       } catch (error) {
         console.error('Error fetching rule:', error);
+        setFormData(defaultRules); // Lỗi khi kết nối API, sử dụng defaultRules
+      } finally {
+        setLoading(false); // Kết thúc quá trình tải dữ liệu
       }
     };
 
@@ -63,16 +76,7 @@ const TournamentRuleForm = () => {
     }
   }, [selectedTournament]);
 
-  useEffect(() => {
-    if (selectedTournament?.StartDate) {
-      const currentDate = new Date();
-      const startDate = new Date(selectedTournament.StartDate);
-      if (currentDate >= startDate) {
-        setIsEditable(false); // Form không thể chỉnh sửa
-      }
-    }
-  }, [selectedTournament]);
-
+  // Xử lý thay đổi dữ liệu từ input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -81,12 +85,11 @@ const TournamentRuleForm = () => {
     });
   };
 
+  // Xử lý khi người dùng gửi form để cập nhật dữ liệu
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formToSend = {
-      ...formData,
-    };
+    const formToSend = { ...formData };
 
     try {
       const response = await fetch(
@@ -99,58 +102,55 @@ const TournamentRuleForm = () => {
           body: JSON.stringify(formToSend),
         }
       );
+
       if (response.ok) {
         console.log('Dữ liệu đã được cập nhật thành công');
         alert('Dữ liệu đã được cập nhật');
       } else {
         console.error('Lỗi khi cập nhật dữ liệu');
+        alert('Lỗi khi cập nhật dữ liệu');
       }
     } catch (error) {
       console.error('Error updating rule:', error);
+      alert('Lỗi khi cập nhật dữ liệu');
     }
   };
 
+  // Xử lý khi người dùng muốn reset dữ liệu về mặc định
   const handleReset = () => {
-    setFormData({
-      MaxTeam: 20,
-      MinTeam: 15,
-      MaxPlayer: 22,
-      MinPlayer: 15,
-      MaxForeignPlayer: 3,
-      MinAgePlayer: 16,
-      MaxAgePlayer: 40,
-      WinScore: 3,
-      LoseScore: 0,
-      DrawScore: 1,
-      MaxTimeScore: 96,
-      NumberOfTypeScore: 3,
-      RankPriorityOrder: 'Điểm - Hiệu số - Tổng bàn thắng - Đối kháng',
-    });
+    setFormData(defaultRules); // Đặt lại dữ liệu về mặc định
   };
 
+  // Kiểm tra quyền admin của người dùng
   const isAdmin = user?.Role === 'Admin';
+
+  // Hiển thị giao diện khi dữ liệu đang được tải
+  if (loading) {
+    return <div className='text-center'>Đang tải dữ liệu...</div>;
+  }
 
   return (
     <div className='max-w-4xl mx-auto p-6 shadow-lg rounded-lg bg-white'>
       <form onSubmit={handleSubmit}>
         <h3 className='text-xl font-semibold mb-4 text-center'>Điều lệ giải</h3>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-4'>
-          {Object.keys(formData).map((key) => (
-            <div key={key}>
-              <label>{labelMapping[key] || key}</label>
-              <input
-                type={key === 'RankPriorityOrder' ? 'text' : 'number'}
-                name={key}
-                value={formData[key]}
-                onChange={handleChange}
-                disabled={!isEditable || !isAdmin} // Disable nếu không được chỉnh sửa hoặc không phải Admin
-                className='border p-2 w-full rounded-md'
-              />
-            </div>
-          ))}
+          {formData &&
+            Object.keys(formData).map((key) => (
+              <div key={key}>
+                <label>{labelMapping[key] || key}</label>
+                <input
+                  type={key === 'RankPriorityOrder' ? 'text' : 'number'}
+                  name={key}
+                  value={formData[key]}
+                  onChange={handleChange}
+                  disabled={!isAdmin} // Không cho phép chỉnh sửa nếu không phải admin hoặc giải đã bắt đầu
+                  className='border p-2 w-full rounded-md'
+                />
+              </div>
+            ))}
         </div>
 
-        {isEditable && isAdmin && (
+        {isAdmin && (
           <div className='flex gap-4 justify-center'>
             <button
               type='submit'

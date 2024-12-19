@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -8,13 +8,37 @@ const RegisterTournamentModal = ({
   onRegister,
   teams,
   selectedTournament,
+  teamAttendTournament,
 }) => {
   // State để lưu danh sách các đội được chọn
   //console.log('RegisterTournament teams', teams);
+  console.log('teams.length', teamAttendTournament.length);
   const [selectedTeams, setSelectedTeams] = useState([]);
   const [loading, setLoading] = useState(false); // Để hiển thị trạng thái đang tải
   const [error, setError] = useState(''); // Để hiển thị lỗi nếu có
   const navigate = useNavigate();
+
+  const [rules, setRules] = useState();
+
+  useEffect(() => {
+    try {
+      const fetchRule = async () => {
+        const response = await fetch(
+          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch rule');
+        }
+        const result = await response.json();
+        console.log('rules: ', result.data);
+        setRules(result.data);
+      };
+
+      fetchRule();
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }, []);
 
   // Hàm xử lý sự kiện khi người dùng chọn hoặc bỏ chọn đội
   const handleSelectionChange = (e) => {
@@ -30,6 +54,10 @@ const RegisterTournamentModal = ({
 
   // Hàm gửi yêu cầu đăng ký
   const handleRegisterClick = async () => {
+    if (teamAttendTournament.length + selectedTeams.length > rules.MaxTeam) {
+      toast.warning(`Số đội đăng ký tham gia giải tối đa là ${rules.MaxTeam}`);
+      return;
+    }
     if (selectedTeams.length === 0) {
       setError('Vui lòng chọn ít nhất một đội bóng.');
       return;
