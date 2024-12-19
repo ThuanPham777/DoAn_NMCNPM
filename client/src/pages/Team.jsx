@@ -40,7 +40,7 @@ const Team = () => {
   if (!teams.length) {
     return (
       <div className='flex justify-center items-center h-screen'>
-        <Spin size='large' />
+        <p>Chưa có đội tham gia giải đấu {selectedTournament.TournamentName}</p>
       </div>
     );
   }
