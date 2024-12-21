@@ -54,7 +54,7 @@ const TournamentForm = ({ mode = 'create', initialData = null }) => {
       const url =
         mode === 'create'
           ? 'http://localhost:3000/api/tournament/add'
-          : `http://localhost:3000/api/tournament/udpate/${initialData?.id}`;
+          : `http://localhost:3000/api/tournament/update/${initialData?.TournamentID}`;
 
       const method = mode === 'create' ? 'POST' : 'PUT';
 

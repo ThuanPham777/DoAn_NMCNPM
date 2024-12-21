@@ -100,6 +100,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
 
   // Handle form submission
   const handleFormSubmit = async (data) => {
+    // Kiểm tra số lượng cầu thủ ngoài nước
     if (
       data.PlayerType === 'Ngoài nước' &&
       theNumberOfForeignPlayers >= (rules?.MaxForeignPlayer || 0)
@@ -109,14 +110,20 @@ const AddSoccerForm = ({ player, TeamID }) => {
       );
       return;
     }
+
     const formData = new FormData();
     formData.append('PlayerName', data.PlayerName);
     formData.append('DateOfBirth', data.DateOfBirth);
     formData.append('JerseyNumber', data.JerseyNumber);
     formData.append('HomeTown', data.HomeTown);
     formData.append('PlayerType', data.PlayerType);
+
+    // Nếu có hình ảnh mới thì thêm vào FormData
     if (image) {
       formData.append('ProfileImg', image);
+    } else if (player?.ProfileImg) {
+      // Nếu không có ảnh mới, giữ nguyên ảnh hiện tại
+      formData.append('ProfileImg', player.ProfileImg);
     }
 
     try {
@@ -134,18 +141,21 @@ const AddSoccerForm = ({ player, TeamID }) => {
       if (response.ok) {
         const responseData = await response.json();
         console.log('API Response:', responseData);
-        // Nếu có thông báo lỗi từ server (trigger hoặc lỗi khác)
+
+        // Xử lý thông báo lỗi từ backend
         if (responseData.message) {
-          alert(responseData.message); // Hiển thị thông báo lỗi từ backend lên UI
+          toast.error(responseData.message);
         } else {
-          navigate('/'); // Navigate after successful form submission
+          toast.success('Cập nhật thành công!');
+          navigate('/'); // Điều hướng sau khi thành công
         }
-        navigate('/'); // Navigate after successful form submission
       } else {
         console.error('Error submitting form:', response.statusText);
+        toast.error('Cập nhật thất bại, vui lòng thử lại!');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+      toast.error('Có lỗi xảy ra, vui lòng thử lại!');
     }
   };
 

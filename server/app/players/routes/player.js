@@ -12,7 +12,11 @@ router.post(
   playerController.addPlayer
 );
 
-router.put('/team/:TeamID/edit/:PlayerID', playerController.updatePlayer);
+router.put(
+  '/team/:TeamID/edit/:PlayerID',
+  uploadPlayer.single('ProfileImg'),
+  playerController.updatePlayer
+);
 
 router.get(
   '/tournament/:TournamentID',

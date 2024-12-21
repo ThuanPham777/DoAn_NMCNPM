@@ -10,7 +10,7 @@ exports.getRule = async (req, res) => {
       .execute('getRule'); // Gọi stored procedure
 
     // Gửi dữ liệu trả về từ database
-    console.log(result.recordset[0]);
+    //console.log(result.recordset[0]);
     res.status(200).json({ data: result.recordset[0] });
   } catch (error) {
     console.error('Error executing getRule:', error);

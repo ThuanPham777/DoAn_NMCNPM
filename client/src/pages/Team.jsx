@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import TeamCard from '../components/Team/TeamCard';
-import { Spin } from 'antd';
 import { toast } from 'react-toastify';
 
 const Team = () => {
@@ -9,15 +8,10 @@ const Team = () => {
 
   // get tournament from localStorage
   const { selectedTournament } = useSelector((state) => state.tournament);
-  console.log('selectedTournament', selectedTournament);
+  //console.log('selectedTournament', selectedTournament);
 
   // Gọi API để lấy dữ liệu danh sách đội bóng thuộc mùa giải đã chọn
   useEffect(() => {
-    if (!selectedTournament) {
-      toast.warning('Please select a tournament');
-      return;
-    }
-
     const fetchTeams = async () => {
       try {
         const response = await fetch(
@@ -37,6 +31,10 @@ const Team = () => {
     fetchTeams();
   }, [selectedTournament]); // Khi selectedTournament thay đổi thì gọi lại API
 
+  if (!selectedTournament) {
+    toast.warning('Please select a tournament');
+    return;
+  }
   if (!teams.length) {
     return (
       <div className='flex justify-center items-center h-screen'>

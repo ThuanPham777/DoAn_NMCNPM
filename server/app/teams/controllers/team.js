@@ -140,18 +140,33 @@ exports.addTeamsInTournament = async (req, res) => {
 exports.updateTeam = async (req, res) => {
   const TeamID = parseInt(req.params.TeamID, 10);
   const { TeamName, Stadium, Coach } = req.body;
-  const TeamLogo = req.file ? req.file.filename : null;
-  const UserID = parsent(req.user.UserID);
+  const UserID = parseInt(req.user.UserID);
 
+  // Check if required fields are provided
   if (!TeamID || !TeamName || !Stadium || !Coach) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
   let pool;
   try {
-    pool = await db(); // Kết nối với cơ sở dữ liệu
+    pool = await db(); // Connect to the database
 
-    // Gọi stored procedure updateTeam
+    // First, get the current team data to check for the existing logo
+    const currentTeamResult = await pool
+      .request()
+      .input('TeamID', TeamID)
+      .query('SELECT TeamLogo FROM Team WHERE TeamID = @TeamID'); // Adjust to your actual query
+
+    if (currentTeamResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    const currentTeamLogo = currentTeamResult.recordset[0].TeamLogo;
+
+    // If a new logo file is uploaded, use that logo
+    const TeamLogo = req.file ? req.file.filename : currentTeamLogo;
+
+    // Call the stored procedure to update the team details
     const result = await pool
       .request()
       .input('TeamID', TeamID)
@@ -159,17 +174,17 @@ exports.updateTeam = async (req, res) => {
       .input('Stadium', Stadium)
       .input('Coach', Coach)
       .input('TeamLogo', TeamLogo)
-      .input('UserID', UserID) // ID người dùng thực hiện thao tác
-      .execute('updateTeam'); // Tên stored procedure trong cơ sở dữ liệu
+      .input('UserID', UserID) // UserID of the person making the change
+      .execute('updateTeam'); // Name of the stored procedure
 
-    // Kiểm tra nếu kết quả trả về có thông báo lỗi
+    // Check if the stored procedure returned an error message
     if (result.recordset.length > 0 && result.recordset[0].ErrorMessage) {
       return res.status(400).json({
         message: result.recordset[0].ErrorMessage,
       });
     }
 
-    // Nếu không có lỗi, trả về thông báo thành công
+    // Successfully updated the team
     res.json({ message: 'Team updated successfully' });
   } catch (error) {
     console.error('Error updating team:', error);

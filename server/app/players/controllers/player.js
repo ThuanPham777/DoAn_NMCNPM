@@ -170,7 +170,8 @@ exports.updatePlayer = async (req, res) => {
     const TeamID = parseInt(req.params.TeamID, 10);
     const { DateOfBirth, PlayerName, JerseyNumber, HomeTown, PlayerType } =
       req.body;
-    const ProfileImg = req.file?.filename;
+    let ProfileImg = req.file?.filename; // Lấy ảnh từ file upload
+
     if (
       !PlayerID ||
       !TeamID ||
@@ -193,17 +194,29 @@ exports.updatePlayer = async (req, res) => {
         )}`,
       });
     }
+
     const parsedDateOfBirth = new Date(DateOfBirth);
     if (isNaN(parsedDateOfBirth.getTime())) {
       return res.status(400).json({ message: 'Invalid DateOfBirth format' });
     }
-    // Kiểm tra JerseyNumber (Phải là số nguyên dương)
+
     if (isNaN(JerseyNumber) || JerseyNumber <= 0) {
       return res.status(400).json({
         message: 'Invalid JerseyNumber. It must be a positive number',
       });
     }
+
     const pool = await db();
+
+    // Nếu không có tệp ảnh mới, lấy giá trị `ProfileImg` hiện tại từ cơ sở dữ liệu
+    if (!ProfileImg) {
+      const currentPlayer = await pool
+        .request()
+        .input('PlayerID', PlayerID)
+        .execute('getPlayerById'); // Hàm `getPlayerByID` phải trả về thông tin cầu thủ hiện tại
+      ProfileImg = currentPlayer.recordset[0]?.ProfileImg || null;
+    }
+
     const result = await pool
       .request()
       .input('PlayerID', PlayerID)
@@ -215,6 +228,7 @@ exports.updatePlayer = async (req, res) => {
       .input('ProfileImg', ProfileImg || null)
       .input('PlayerType', PlayerType.trim())
       .execute('updatePlayer');
+
     return res.status(200).json({
       message: 'Player updated successfully',
       result: result.recordset,

@@ -25,6 +25,13 @@ router.get(
   teamController.getTeamsAttendTournaments
 );
 
+router.put(
+  '/:TeamID/update',
+  authController.protect,
+  uploadTournament.single('TeamLogo'),
+  teamController.updateTeam
+);
+
 router.post(
   '/add-teams-tournament',
   authController.protect,

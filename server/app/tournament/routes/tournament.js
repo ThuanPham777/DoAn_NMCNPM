@@ -11,7 +11,11 @@ router.post(
   tournamentController.addTournament
 );
 
-router.put('/update/TournamentID', tournamentController.updateTournament);
+router.put(
+  '/update/:TournamentID',
+  uploadTournament.single('TournamentLogo'),
+  tournamentController.updateTournament
+);
 
 router.get('/', tournamentController.getAllTournaments);
 

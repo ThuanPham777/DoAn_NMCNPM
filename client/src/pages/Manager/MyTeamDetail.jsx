@@ -57,6 +57,23 @@ const MyTeamDetail = () => {
 
   const columns = [
     {
+      title: 'Ảnh đại diện',
+      dataIndex: 'ProfileImg',
+      key: 'ProfileImg',
+      render: (text) => (
+        <img
+          src={`http://localhost:3000/uploads/players/${text}`}
+          alt='Profile'
+          style={{
+            width: '50px',
+            height: '50px',
+            objectFit: 'cover',
+            borderRadius: '50%',
+          }}
+        />
+      ),
+    },
+    {
       title: 'Số áo',
       dataIndex: 'JerseyNumber',
       key: 'JerseyNumber',

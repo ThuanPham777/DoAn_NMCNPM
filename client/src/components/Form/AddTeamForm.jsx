@@ -32,7 +32,8 @@ const AddTeamForm = () => {
     formData.append('Stadium', data.stadium);
     formData.append('Coach', data.coach);
 
-    if (logo) {
+    // If a new logo is selected, append it to the formData
+    if (logo && typeof logo !== 'string') {
       formData.append('TeamLogo', logo);
     }
 
@@ -80,7 +81,7 @@ const AddTeamForm = () => {
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setLogo(file);
+      setLogo(file); // Update the logo with the new selected file
     }
   };
 
@@ -151,13 +152,19 @@ const AddTeamForm = () => {
             onChange={handleLogoChange}
             className='border p-2 w-full rounded-md'
           />
-          {logo && (
+          {logo && typeof logo === 'string' ? (
             <img
               src={`http://localhost:3000/uploads/teams/${logo}`}
               alt='Team Logo'
               className='mt-2 w-32 h-32 object-cover'
             />
-          )}
+          ) : logo && typeof logo !== 'string' ? (
+            <img
+              src={URL.createObjectURL(logo)}
+              alt='New Team Logo'
+              className='mt-2 w-32 h-32 object-cover'
+            />
+          ) : null}
         </div>
 
         <div className='flex justify-center mt-6'>

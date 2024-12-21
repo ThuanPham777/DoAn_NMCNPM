@@ -94,20 +94,38 @@ exports.getTournamentById = async (req, res) => {
 };
 
 exports.updateTournament = async (req, res) => {
-  const { TournamentID } = req.params;
+  const TournamentID = parseInt(req.params.TournamentID, 10);
   const { TournamentName, StartDate, EndDate } = req.body;
-  const TournamentLogo = req.file ? req.file.filename : null;
 
   // Validate input
   if (!TournamentID || !TournamentName || !StartDate || !EndDate) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
+  let pool;
   try {
     // Initialize database connection
-    const pool = await db();
+    pool = await db();
 
-    // Execute stored procedure
+    // First, get the current tournament data to check for the existing logo
+    const currentTournamentResult = await pool
+      .request()
+      .input('TournamentID', TournamentID)
+      .query(
+        'SELECT TournamentLogo FROM Tournament WHERE TournamentID = @TournamentID'
+      ); // Adjust to your actual query
+
+    if (currentTournamentResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Tournament not found' });
+    }
+
+    const currentTournamentLogo =
+      currentTournamentResult.recordset[0].TournamentLogo;
+
+    // If a new logo file is uploaded, use that logo; otherwise, retain the existing logo
+    const TournamentLogo = req.file ? req.file.filename : currentTournamentLogo;
+
+    // Execute stored procedure to update the tournament
     const result = await pool
       .request()
       .input('TournamentID', TournamentID)
@@ -115,20 +133,21 @@ exports.updateTournament = async (req, res) => {
       .input('StartDate', StartDate)
       .input('EndDate', EndDate)
       .input('TournamentLogo', TournamentLogo)
-      .execute('updateTournament');
+      .execute('updateTournament'); // The stored procedure name
 
-    // Check for successful update
+    // Check if the stored procedure returned an error or no rows were affected
     if (result.rowsAffected[0] === 0) {
-      return res
-        .status(404)
-        .json({ message: 'Tournament not found or no changes made.' });
+      return res.status(404).json({
+        message: 'Tournament not found or no changes made.',
+      });
     }
 
+    // Respond with the updated information
     res.json({
       message: 'Tournament updated successfully',
       filePath: TournamentLogo
         ? `/uploads/tournaments/${TournamentLogo}`
-        : null,
+        : null, // Return the path to the logo if it's available
     });
   } catch (error) {
     console.error('Error updating tournament:', error);
