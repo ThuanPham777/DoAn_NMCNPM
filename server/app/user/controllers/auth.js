@@ -76,7 +76,7 @@ exports.signup = async (req, res) => {
       .input('UserName', username)
       .input('Email', email)
       .input('Password', hashedPassword)
-      .input('Role', 'Guest')
+      .input('Role', 'Manager')
       .execute('insertUser');
 
     // Fetch the newly created user to include in the response
