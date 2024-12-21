@@ -32,14 +32,32 @@ const TeamDetail = () => {
 
   const columns = [
     {
-      title: 'Số áo',
-      dataIndex: 'JerseyNumber',
-      key: 'JerseyNumber',
+      title: 'Ảnh đại diện',
+      dataIndex: 'ProfileImg',
+      key: 'ProfileImg',
+      render: (text) => (
+        <img
+          src={`http://localhost:3000/uploads/players/${text}`}
+          alt='Profile'
+          style={{
+            width: '50px',
+            height: '50px',
+            objectFit: 'cover',
+            borderRadius: '50%',
+          }}
+        />
+      ),
     },
+
     {
       title: 'Họ và tên',
       dataIndex: 'PlayerName',
       key: 'PlayerName',
+    },
+    {
+      title: 'Số áo',
+      dataIndex: 'JerseyNumber',
+      key: 'JerseyNumber',
     },
     {
       title: 'Ngày sinh',

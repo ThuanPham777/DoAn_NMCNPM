@@ -74,14 +74,14 @@ const MyTeamDetail = () => {
       ),
     },
     {
-      title: 'Số áo',
-      dataIndex: 'JerseyNumber',
-      key: 'JerseyNumber',
-    },
-    {
       title: 'Họ và tên',
       dataIndex: 'PlayerName',
       key: 'PlayerName',
+    },
+    {
+      title: 'Số áo',
+      dataIndex: 'JerseyNumber',
+      key: 'JerseyNumber',
     },
     {
       title: 'Ngày sinh',
