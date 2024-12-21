@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -9,10 +10,12 @@ const RegisterTournamentModal = ({
   teams,
   selectedTournament,
   teamAttendTournament,
+  teamsAttendTournaments,
 }) => {
   // State để lưu danh sách các đội được chọn
   //console.log('RegisterTournament teams', teams);
-  console.log('teams.length', teamAttendTournament.length);
+  //console.log('teams.length', teamAttendTournament.length);
+  const user = useSelector((state) => state.user.user);
   const [selectedTeams, setSelectedTeams] = useState([]);
   const [loading, setLoading] = useState(false); // Để hiển thị trạng thái đang tải
   const [error, setError] = useState(''); // Để hiển thị lỗi nếu có
@@ -112,10 +115,34 @@ const RegisterTournamentModal = ({
         <h3 className='text-xl font-bold text-center mb-4'>
           Đăng ký tham gia giải đấu {selectedTournament.TournamentName || ''}
         </h3>
-        <h4 className='text-lg mb-2'>Danh sách đội bóng của bạn:</h4>
 
-        {/* Danh sách checkbox để chọn các đội bóng */}
+        {/* Danh sách các đội đã tham gia giải đấu này và các giải đấu khác */}
+        {teamsAttendTournaments && teamsAttendTournaments.length > 0 && (
+          <div>
+            <h4 className='text-lg mb-4'>Danh sách đội bóng đã đăng ký:</h4>
+            <div className='max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2'>
+              {teamsAttendTournaments.length > 0 ? (
+                teamsAttendTournaments
+                  .filter((team) => team.UserID === user.UserID)
+                  .map((team) => (
+                    <div
+                      key={team.TeamID}
+                      className='border-b border-gray-200 px-4 py-2'
+                    >
+                      {team.TeamName}
+                    </div>
+                  ))
+              ) : (
+                <p className='text-gray-500'>
+                  Không có đội bóng nào đã đăng ký.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+        {/* Danh sách checkbox để chọn các đội bóng chưa tham gia giải đấu (lưu ý 1 đội chỉ được tham gia một giải đấu duy nhất) */}
         <div className='space-y-2 mb-4'>
+          <h4 className='text-lg mb-2'>Danh sách đội bóng chưa đăng ký:</h4>
           {teams.length > 0 &&
             teams.map((team, index) => (
               <label

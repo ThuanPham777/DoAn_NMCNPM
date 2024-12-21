@@ -178,3 +178,28 @@ exports.updateTeam = async (req, res) => {
       .json({ message: 'Internal Server Error', error: error.message });
   }
 };
+
+exports.getTeamsAttendTournaments = async (req, res) => {
+  try {
+    const pool = await db();
+    const result = await pool.request().query(`
+        SELECT Team.TeamID, Team.TeamName, TournamentID, Team.UserID
+        FROM TeamAttendTournament
+        JOIN Team ON TeamAttendTournament.TeamID = Team.TeamID
+      `);
+
+    // Gửi kết quả về client
+    res.status(200).json({
+      success: true,
+      data: result.recordset, // Trả về danh sách các đội
+    });
+  } catch (error) {
+    console.error('Error connecting to database:', error);
+
+    // Gửi phản hồi lỗi về client
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+};

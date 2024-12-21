@@ -20,6 +20,11 @@ router.get(
 
 router.get('/my-teams', authController.protect, teamController.getAllMyTeams);
 
+router.get(
+  '/teams-attend-tournaments',
+  teamController.getTeamsAttendTournaments
+);
+
 router.post(
   '/add-teams-tournament',
   authController.protect,

@@ -12,6 +12,7 @@ const TournamentDetails = () => {
 
   const [teams, setTeams] = useState([]);
   const [teamAttendTournament, setTeamAttendTournament] = useState([]);
+  const [teamsAttendTournaments, setTeamsAttendTournaments] = useState([]);
   const [loading, setLoading] = useState(true); // State để quản lý loading
   const [filteredTeams, setFilteredTeams] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,7 +35,31 @@ const TournamentDetails = () => {
     }
   };
 
-  const fetchTeamsAttendTournament = async (TournamentID) => {
+  useEffect(() => {
+    // Lấy danh sách các đội bóng tham gia các giải đấu
+    const fetchTeamsAttendTournaments = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/team/teams-attend-tournaments`
+        );
+        if (!response.ok) {
+          throw new Error('Không thể lấy danh sách đ��i bóng tham gia.');
+        }
+        const result = await response.json();
+        console.log('result data', result.data);
+        setTeamsAttendTournaments(result.data);
+      } catch (error) {
+        console.error(
+          'L��i khi lấy danh sách đ��i bóng tham gia giải đấu:',
+          error
+        );
+      }
+    };
+    fetchTeamsAttendTournaments();
+  }, []);
+
+  // Lấy danh sách đội tham gia 1 giải đấu
+  const fetchTeamAttendTournament = async (TournamentID) => {
     try {
       const response = await fetch(
         `http://localhost:3000/api/team/tournament/${TournamentID}/teams-attend-tournament`
@@ -43,6 +68,7 @@ const TournamentDetails = () => {
         throw new Error('Không thể lấy danh sách đội bóng tham gia.');
       }
       const result = await response.json();
+      console.log('result: ' + result.data);
       setTeamAttendTournament(result.data || []);
     } catch (error) {
       console.error('Lỗi khi lấy đội bóng tham gia giải đấu:', error);
@@ -51,16 +77,16 @@ const TournamentDetails = () => {
 
   // Tính toán các đội bóng chưa tham gia giải đấu.
   useEffect(() => {
-    if (teams.length > 0 && teamAttendTournament.length > 0) {
-      const teamAttendIDs = teamAttendTournament.map((team) => team.TeamID);
+    if (teams.length > 0 && teamsAttendTournaments.length > 0) {
+      const teamAttendIDs = teamsAttendTournaments.map((entry) => entry.TeamID); // Lấy tất cả TeamID đã tham gia giải nào đó
       const filtered = teams.filter(
-        (team) => !teamAttendIDs.includes(team.TeamID)
+        (team) => !teamAttendIDs.includes(team.TeamID) // Loại bỏ các đội đã tham gia bất kỳ giải đấu nào
       );
       setFilteredTeams(filtered);
     } else {
-      setFilteredTeams(teams); // Nếu chưa có đội tham gia thì hiển thị tất cả đội
+      setFilteredTeams(teams); // Nếu chưa có đội tham gia, hiển thị tất cả đội
     }
-  }, [teams, teamAttendTournament]);
+  }, [teams, teamsAttendTournaments]);
 
   //Lấy dữ liệu đội bóng và đội tham gia giải đấu khi `selectedTournament` thay đổi để liệt kế đội nào chưa tham gia.
   useEffect(() => {
@@ -69,7 +95,7 @@ const TournamentDetails = () => {
       try {
         await fetchMyTeams();
         if (selectedTournament?.TournamentID) {
-          await fetchTeamsAttendTournament(selectedTournament.TournamentID);
+          await fetchTeamAttendTournament(selectedTournament.TournamentID);
         }
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu ban đầu:', error);
@@ -128,6 +154,7 @@ const TournamentDetails = () => {
         teams={filteredTeams}
         selectedTournament={selectedTournament}
         teamAttendTournament={teamAttendTournament}
+        teamsAttendTournaments={teamsAttendTournaments}
       />
     </div>
   );
