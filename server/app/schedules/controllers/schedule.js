@@ -2,16 +2,23 @@ const db = require('../../../config/db');
 const dayjs = require('dayjs');
 
 // Hàm tạo lịch thi đấu
-function generateSchedule(teams) {
+function generateSchedule(teams, startDate, endDate) {
   const teamIds = [...teams];
   if (teamIds.length % 2 !== 0) teamIds.push(null); // Bye round nếu số đội lẻ
 
-  const numRounds = teamIds.length - 1; // Số vòng
+  const numRounds = teamIds.length - 1; // Số vòng lượt đi
   const rounds = [];
 
+  // Tính số ngày giữa các vòng đấu
+  const totalDays = dayjs(endDate).diff(dayjs(startDate), 'days');
+  const daysPerRound = Math.floor(totalDays / numRounds); // Lượt đi + lượt về
+
+  // Tạo lịch thi đấu lượt đi
   for (let round = 0; round < numRounds; round++) {
     const matches = [];
-    const roundDate = dayjs().add(round, 'days').format('YYYY-MM-DD');
+    const roundDate = dayjs(startDate)
+      .add(round * daysPerRound, 'days')
+      .format('YYYY-MM-DD');
 
     for (let i = 0; i < teamIds.length / 2; i++) {
       const team1 = teamIds[i];
@@ -22,7 +29,7 @@ function generateSchedule(teams) {
           team1ID: team1.TeamID,
           team2ID: team2.TeamID,
           stadium: team1.Stadium, // Sân đá lượt đi
-          date: `${roundDate} ${14 + i}:00`,
+          date: `${roundDate} ${14 + i}:00`, // Giả sử mỗi trận đấu cách nhau 1 giờ
         });
       }
     }
@@ -34,7 +41,9 @@ function generateSchedule(teams) {
   // Tạo lượt về
   const returnRounds = rounds.map((round, index) => ({
     id: numRounds + index + 1,
-    date: dayjs(round.date).add(numRounds, 'days').format('YYYY-MM-DD'),
+    date: dayjs(round.date)
+      .add(numRounds * daysPerRound, 'days') // Tính ngày lượt về
+      .format('YYYY-MM-DD'),
     matches: round.matches.map((match) => {
       const team1 = teams.find((team) => team.TeamID === match.team1ID);
       const team2 = teams.find((team) => team.TeamID === match.team2ID);
@@ -44,7 +53,7 @@ function generateSchedule(teams) {
         team2ID: match.team1ID,
         stadium: team2?.Stadium || team1?.Stadium || 'Default Stadium', // Lấy sân từ đội hoặc mặc định
         date: `${dayjs(round.date)
-          .add(numRounds, 'days')
+          .add(numRounds * daysPerRound, 'days')
           .format('YYYY-MM-DD')} ${match.date.split(' ')[1]}`,
       };
     }),
@@ -58,7 +67,18 @@ exports.createSchedule = async (req, res) => {
     const TournamentID = parseInt(req.params.TournamentID, 10);
     const pool = await db();
 
-    // Lấy danh sách các đội tham dự giải (bao gồm thông tin sân đá)
+    // Lấy thông tin giải đấu
+    const tournamentResult = await pool
+      .request()
+      .input('TournamentID', TournamentID)
+      .query(
+        'SELECT StartDate, EndDate FROM Tournament WHERE TournamentID = @TournamentID'
+      );
+    const tournament = tournamentResult.recordset[0];
+
+    const { StartDate, EndDate } = tournament;
+
+    // Lấy danh sách các đội tham dự giải
     const teamsResult = await pool
       .request()
       .input('TournamentID', TournamentID)
@@ -72,16 +92,16 @@ exports.createSchedule = async (req, res) => {
     await pool
       .request()
       .input('TournamentID', TournamentID)
-      .query('DELETE FROM Match WHERE TournamentID = @TournamentID'); // Xóa trận đấu
+      .query('DELETE FROM Match WHERE TournamentID = @TournamentID');
     await pool
       .request()
       .input('TournamentID', TournamentID)
-      .query('DELETE FROM Round WHERE TournamentID = @TournamentID'); // Xóa vòng đấu
+      .query('DELETE FROM Round WHERE TournamentID = @TournamentID');
 
     // Tạo lịch thi đấu mới
-    const schedule = generateSchedule(teams);
+    const schedule = generateSchedule(teams, StartDate, EndDate);
 
-    // Lưu các vòng đấu vào bảng `Round`
+    // Lưu các vòng đấu và trận đấu
     for (const round of schedule) {
       await pool
         .request()
@@ -90,19 +110,16 @@ exports.createSchedule = async (req, res) => {
         .query(
           `INSERT INTO Round (RoundID, TournamentID) VALUES (@RoundID, @TournamentID)`
         );
-    }
 
-    // Lưu các trận đấu vào bảng `Match`
-    for (const round of schedule) {
       for (const match of round.matches) {
         await pool
           .request()
-          .input('MatchID', round.matches.indexOf(match) + 1) // ID của trận đấu
+          .input('MatchID', round.matches.indexOf(match) + 1)
           .input('RoundID', round.id)
           .input('TournamentID', TournamentID)
           .input('Team1ID', match.team1ID)
           .input('Team2ID', match.team2ID)
-          .input('Stadium', match.stadium) // Sân đá
+          .input('Stadium', match.stadium)
           .input('MatchDate', dayjs(match.date).format('YYYY-MM-DD HH:mm:ss'))
           .query(
             `INSERT INTO Match (MatchID, RoundID, TournamentID, Team1ID, Team2ID, Stadium, MatchDate)
