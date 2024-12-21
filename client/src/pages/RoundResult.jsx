@@ -96,7 +96,7 @@ const RoundResult = () => {
   // Sự kiện khi nhấn vào một hàng trong bảng
   const onRowClick = (record) => {
     if (!record.matchID) return;
-    navigate(`/update-match-result/${record.matchID}`, {
+    navigate(`/match-result-detail/${record.matchID}`, {
       state: { match: record, RoundID: record.roundID },
     });
   };

@@ -4,8 +4,13 @@ const router = express.Router();
 const matchController = require('../controllers/match');
 
 router.post(
-  '/:MatchID/round/:RoundID/tournament/:TournamentID/add-score/player/:PlayerID',
+  '/:MatchID/round/:RoundID/tournament/:TournamentID/add-goal/player/:PlayerID',
   matchController.addMatchScore
+);
+
+router.delete(
+  '/:MatchID/round/:RoundID/tournament/:TournamentID/delete-goal/player/:PlayerID/minute/:minute',
+  matchController.deleteMatchScore
 );
 
 router.get(

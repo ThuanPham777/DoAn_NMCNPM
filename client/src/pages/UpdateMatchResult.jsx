@@ -21,8 +21,12 @@ const UpdateMatchResult = () => {
   const [matchScoreInfo, setMatchScoreInfo] = useState(null);
   const [playerScoreInfo, setPlayersScoreInfo] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalVisibleEditAndDelete, setIsModalVisibleEditAndDelete] =
+    useState(false);
+  // for edit
+  const [selectedGoal, setSelectedGoal] = useState();
+  const [selectedPlayer, setSelectedPlayer] = useState();
   const [modalType, setModalType] = useState(null);
-
   const [rules, setRules] = useState();
 
   useEffect(() => {
@@ -56,14 +60,14 @@ const UpdateMatchResult = () => {
     },
   };
 
-  console.log('matchInfo', match);
+  //console.log('matchInfo', match);
   // Calculate if the match has started or not
   const matchStartTime = new Date(match.date); // Assuming match.startTime is available as a string (e.g., '2024-12-20T15:00:00Z')
   const currentTime = new Date();
 
   const matchStatus =
     currentTime < matchStartTime ? 'Chưa diễn ra' : 'Đã diễn ra';
-  console.log('matchStatus: ' + matchStatus);
+  //console.log('matchStatus: ' + matchStatus);
 
   const fetchMatchDetails = async () => {
     try {
@@ -75,7 +79,7 @@ const UpdateMatchResult = () => {
         setMatchScoreInfo(result.data.matchInfo);
         console.log(result.data.matchInfo);
         setPlayersScoreInfo(result.data.playerDetails);
-        //console.log(result.data.playerDetails);
+        console.log(result.data.playerDetails);
       } else {
         throw new Error('Failed to fetch match details.');
       }
@@ -114,6 +118,7 @@ const UpdateMatchResult = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    setIsModalVisibleEditAndDelete(false);
   };
 
   const handleTeamChange = (value) => {
@@ -141,7 +146,7 @@ const UpdateMatchResult = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/match/${match.matchID}/round/${RoundID}/tournament/${selectedTournament.TournamentID}/add-score/player/${selectedPlayerID}`,
+        `http://localhost:3000/api/match/${match.matchID}/round/${RoundID}/tournament/${selectedTournament.TournamentID}/add-goal/player/${selectedPlayerID}`,
         {
           method: 'POST',
           headers: {
@@ -197,6 +202,42 @@ const UpdateMatchResult = () => {
     } catch (error) {
       console.error('Error adding card:', error);
       toast.error('Có lỗi xảy ra khi thêm thẻ!');
+    }
+  };
+
+  const [selectedMinute, setSelectedMinute] = useState(null);
+
+  const showEditModal = (player) => {
+    setSelectedPlayer(player); // Lưu cầu thủ được chọn
+    setSelectedMinute(null); // Reset phút khi mở modal
+    setIsModalVisibleEditAndDelete(true); // Hiển thị modal
+  };
+
+  const deleteGoal = (minute) => {
+    if (selectedPlayer && minute) {
+      // Logic xóa bàn thắng tại phút cụ thể của cầu thủ
+      try {
+        const fetchDeleteGoal = async () => {
+          const response = await fetch(
+            `http://localhost:3000/api/match/${match.matchID}/round/${RoundID}/tournament/${selectedTournament.TournamentID}/delete-goal/player/${selectedPlayer.PlayerID}/minute/${minute}`,
+            {
+              method: 'DELETE',
+            }
+          );
+          if (response.ok) {
+            toast.success('Xóa bàn thắng thành công!');
+            fetchMatchDetails(); // Cập nhật lại dữ liệu
+          } else {
+            throw new Error('Failed to delete goal.');
+          }
+        };
+        fetchDeleteGoal();
+      } catch (error) {
+        console.error('Error deleting goal:', error);
+        toast.error('Có lỗi xảy ra khi xóa bàn thắng!');
+      }
+      // Cập nhật lại dữ liệu (có thể thông qua API hoặc thay đổi trạng thái)
+      setIsModalVisibleEditAndDelete(false); // Đóng modal sau khi xóa
     }
   };
 
@@ -262,12 +303,21 @@ const UpdateMatchResult = () => {
 
                 if (existingPlayer) {
                   // Nếu cầu thủ đã có trong acc, thêm phút ghi bàn vào mảng phút của cầu thủ đó
-                  existingPlayer.Minutes.push(player.Minute);
+                  existingPlayer.Minutes.push({
+                    minute: player.Minute,
+                    scoreType: player.ScoreType, // Giả sử có trường ScoreType
+                  });
                 } else {
                   // Nếu cầu thủ chưa có, tạo mới một đối tượng cho cầu thủ đó
                   acc.push({
+                    PlayerID: player.PlayerID,
                     PlayerName: player.PlayerName,
-                    Minutes: [player.Minute],
+                    Minutes: [
+                      {
+                        minute: player.Minute,
+                        scoreType: player.ScoreType, // Giả sử có trường ScoreType
+                      },
+                    ],
                   });
                 }
 
@@ -276,6 +326,7 @@ const UpdateMatchResult = () => {
               .map((player, index) => (
                 <div
                   key={index}
+                  onClick={() => showEditModal(player)}
                   className='flex items-center gap-4 bg-gray-100 p-2 rounded-md'
                 >
                   <div>
@@ -285,7 +336,21 @@ const UpdateMatchResult = () => {
                     </p>
                   </div>
                   <div className='text-purple-600 font-bold'>
-                    {player.Minutes.join(', ')}'
+                    {player.Minutes.map((minute, i) => {
+                      // Kiểm tra loại bàn thắng và hiển thị đúng kiểu
+                      const minuteDisplay =
+                        minute.scoreType === 'Phạt đền'
+                          ? `${minute.minute}'(P)`
+                          : minute.scoreType === 'Phản lưới'
+                          ? `${minute.minute}'(OG)`
+                          : `${minute.minute}'`; // Nếu không phải Phạt đền hoặc Phản lưới, chỉ hiển thị phút
+                      return (
+                        <span key={i}>
+                          {minuteDisplay}
+                          {i < player.Minutes.length - 1 && ', '}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -312,12 +377,20 @@ const UpdateMatchResult = () => {
 
                 if (existingPlayer) {
                   // Nếu cầu thủ đã có trong acc, thêm phút ghi bàn vào mảng phút của cầu thủ đó
-                  existingPlayer.Minutes.push(player.Minute);
+                  existingPlayer.Minutes.push({
+                    minute: player.Minute,
+                    scoreType: player.ScoreType, // Giả sử có trường ScoreType
+                  });
                 } else {
                   // Nếu cầu thủ chưa có, tạo mới một đối tượng cho cầu thủ đó
                   acc.push({
                     PlayerName: player.PlayerName,
-                    Minutes: [player.Minute],
+                    Minutes: [
+                      {
+                        minute: player.Minute,
+                        scoreType: player.ScoreType, // Giả sử có trường ScoreType
+                      },
+                    ],
                   });
                 }
 
@@ -326,6 +399,7 @@ const UpdateMatchResult = () => {
               .map((player, index) => (
                 <div
                   key={index}
+                  onClick={() => showEditModal(player)}
                   className='flex items-center gap-4 bg-gray-100 p-2 rounded-md'
                 >
                   <div>
@@ -335,7 +409,21 @@ const UpdateMatchResult = () => {
                     </p>
                   </div>
                   <div className='text-purple-600 font-bold'>
-                    {player.Minutes.join(', ')}'
+                    {player.Minutes.map((minute, i) => {
+                      // Kiểm tra loại bàn thắng và hiển thị đúng kiểu
+                      const minuteDisplay =
+                        minute.scoreType === 'Phạt đền'
+                          ? `${minute.minute}'(P)`
+                          : minute.scoreType === 'Phản lưới'
+                          ? `${minute.minute}'(OG)`
+                          : `${minute.minute}'`; // Nếu không phải Phạt đền hoặc Phản lưới, chỉ hiển thị phút
+                      return (
+                        <span key={i}>
+                          {minuteDisplay}
+                          {i < player.Minutes.length - 1 && ', '}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -360,6 +448,7 @@ const UpdateMatchResult = () => {
         )}
       </div>
 
+      {/* ------------------- Thêm bàn thắng----------- */}
       <Modal
         title={modalType === 'goal' ? 'Thêm bàn thắng' : 'Thêm thẻ'}
         visible={isModalVisible}
@@ -421,14 +510,17 @@ const UpdateMatchResult = () => {
                   placeholder='Chọn phút ghi bàn'
                   onChange={handleScoreTimeChange}
                 >
-                  {Array.from({ length: rules.MaxTimeScore + 1 }, (_, i) => (
-                    <Option
-                      key={i}
-                      value={i}
-                    >
-                      Phút {i}
-                    </Option>
-                  ))}
+                  {Array.from(
+                    { length: rules && rules.MaxTimeScore + 1 },
+                    (_, i) => (
+                      <Option
+                        key={i}
+                        value={i}
+                      >
+                        Phút {i}
+                      </Option>
+                    )
+                  )}
                 </Select>
               </Form.Item>
             </>
@@ -450,18 +542,59 @@ const UpdateMatchResult = () => {
                   placeholder='Chọn phút nhận thẻ'
                   onChange={handleScoreTimeChange}
                 >
-                  {Array.from({ length: 97 }, (_, i) => (
-                    <Option
-                      key={i}
-                      value={i}
-                    >
-                      Phút {i}
-                    </Option>
-                  ))}
+                  {Array.from(
+                    { length: rules && rules.MaxTimeScore },
+                    (_, i) => (
+                      <Option
+                        key={i}
+                        value={i}
+                      >
+                        Phút {i}
+                      </Option>
+                    )
+                  )}
                 </Select>
               </Form.Item>
             </>
           )}
+        </Form>
+      </Modal>
+
+      <Modal
+        title='Xóa bàn thắng'
+        visible={isModalVisibleEditAndDelete}
+        onCancel={handleCancel}
+        footer={
+          <div className='flex justify-end'>
+            <Button
+              type='danger'
+              onClick={() => deleteGoal(selectedMinute)}
+              disabled={!selectedMinute} // Không cho phép xóa khi chưa chọn phút
+            >
+              Xóa
+            </Button>
+          </div>
+        }
+      >
+        <Form layout='vertical'>
+          <Form.Item label='Phút ghi bàn'>
+            <Select
+              placeholder='Chọn phút ghi bàn để xóa'
+              value={selectedMinute}
+              onChange={setSelectedMinute} // Cập nhật phút được chọn
+            >
+              {selectedPlayer?.Minutes.map((minuteObj) => (
+                <Select.Option
+                  key={minuteObj.minute}
+                  value={minuteObj.minute}
+                >
+                  Phút {minuteObj.minute}'
+                  {minuteObj.scoreType === 'Phạt đền' && ' (P)'}
+                  {minuteObj.scoreType === 'Phản lưới' && ' (OG)'}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
         </Form>
       </Modal>
     </>

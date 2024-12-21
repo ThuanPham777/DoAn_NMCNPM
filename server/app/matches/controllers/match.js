@@ -65,3 +65,27 @@ exports.getMatchDetails = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+exports.deleteMatchScore = async (req, res) => {
+  try {
+    const { MatchID, RoundID, TournamentID, PlayerID, minute } = req.params;
+    if (!MatchID || !RoundID || !TournamentID || !PlayerID || !minute) {
+      return res.status(400).json({ message: 'Missing required parameters' });
+    }
+    const pool = await db();
+    const result = await pool.request().query(`
+      DELETE FROM ListScore
+      WHERE MatchID = ${MatchID}
+      AND RoundID = ${RoundID}
+      AND TournamentID = ${TournamentID}
+      AND PlayerID = ${PlayerID}
+      AND ScoreTime = ${minute}
+      `);
+    res.status(200).json({
+      success: 'Match score deleted successfully',
+    });
+  } catch (err) {
+    console.error('Error deleting match score:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
