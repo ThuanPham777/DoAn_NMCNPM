@@ -24,6 +24,7 @@ const columns = [
     ),
   },
   { title: 'Họ và tên', dataIndex: 'PlayerName', key: 'PlayerName' },
+  { title: 'Đội bóng', dataIndex: 'TeamName', key: 'TeamName' },
   { title: 'Số áo', dataIndex: 'JerseyNumber', key: 'JerseyNumber' },
   {
     title: 'Ngày sinh',
@@ -37,6 +38,7 @@ const columns = [
   },
   { title: 'Loại cầu thủ', dataIndex: 'PlayerType', key: 'PlayerType' },
   { title: 'Quê quán', dataIndex: 'HomeTown', key: 'HomeTown' },
+  { title: 'Tổng số bàn thắng', dataIndex: 'TotalGoals', key: 'TotalGoals' },
 ];
 
 const SearchSoccers = () => {
@@ -92,6 +94,8 @@ const SearchSoccers = () => {
           PlayerType: player.PlayerType,
           HomeTown: player.HomeTown,
           ProfileImg: player.ProfileImg,
+          TeamName: player.TeamName,
+          TotalGoals: player.TotalGoals,
         }))}
         pagination={{ pageSize: 10, showSizeChanger: false }}
       />

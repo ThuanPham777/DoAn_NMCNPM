@@ -123,6 +123,7 @@ const MatchSchedule = () => {
 
       if (response.ok) {
         message.success('Lịch thi đấu đã được tạo thành công!');
+        localStorage.setItem('isCreatedSchedule', true);
         fetchSchedule(); // Lấy lại lịch thi đấu sau khi tạo
       } else {
         const error = await response.json();

@@ -8,6 +8,7 @@ const MatchResultDetail = () => {
   const { selectedTournament } = useSelector((state) => state.tournament);
   const [matchScoreInfo, setMatchScoreInfo] = useState(null);
   const [playerScoreInfo, setPlayersScoreInfo] = useState([]);
+  const [playerCardInfo, setPlayersCardInfo] = useState([]);
 
   const matchInfo = {
     homeTeam: {
@@ -37,6 +38,8 @@ const MatchResultDetail = () => {
         console.log(result.data.matchInfo);
         setPlayersScoreInfo(result.data.playerDetails);
         console.log(result.data.playerDetails);
+        setPlayersCardInfo(result.data.cardPlayerDetails);
+        console.log(result.data.cardPlayerDetails);
       } else {
         throw new Error('Failed to fetch match details.');
       }
@@ -53,7 +56,7 @@ const MatchResultDetail = () => {
     <>
       <h1 className='text-xl font-bold mb-6'>Kết quả trận đấu</h1>
       <div className='flex flex-col items-center p-6 '>
-        <div className='flex justify-center items-center gap-20 mb-6'>
+        <div className='flex justify-between items-center gap-20 mb-6'>
           <div>
             <div className='text-center'>
               <img
@@ -95,10 +98,10 @@ const MatchResultDetail = () => {
           </div>
         </div>
 
-        {/*  */}
-        <div className='flex justify-center items-center gap-20'>
+        {/*Danh sách các cầu thủ ghi bàn ở 2 đội  */}
+        <div className='flex justify-between items-center gap-20 mb-6'>
           {/* Danh sách các cầu thủ ghi bàn của đội nhà */}
-          <div className=''>
+          <div>
             {playerScoreInfo
               .filter((player) => player.Team === matchInfo.homeTeam.name)
               .reduce((acc, player) => {
@@ -229,6 +232,115 @@ const MatchResultDetail = () => {
                         </span>
                       );
                     })}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+
+        {/* Danh sách thẻ đỏ ở hai đội */}
+        <div className='flex justify-between items-center gap-20 mb-6'>
+          {/* Danh sách cầu thủ nhận thẻ đỏ của đội nhà */}
+          <div>
+            {playerCardInfo
+              .filter(
+                (player) =>
+                  player.Team === matchInfo.homeTeam.name &&
+                  player.CardType === 'Thẻ đỏ' // Lọc thẻ đỏ
+              )
+              .reduce((acc, player) => {
+                // Tìm cầu thủ đã có trong acc
+                const existingPlayer = acc.find(
+                  (p) => p.PlayerName === player.PlayerName
+                );
+
+                if (existingPlayer) {
+                  // Nếu cầu thủ đã có trong acc, thêm phút nhận thẻ vào mảng phút của cầu thủ đó
+                  existingPlayer.CardMinutes.push(player.Minute);
+                } else {
+                  // Nếu cầu thủ chưa có, tạo mới một đối tượng cho cầu thủ đó
+                  acc.push({
+                    PlayerID: player.PlayerID,
+                    PlayerName: player.PlayerName,
+                    CardMinutes: [player.Minute],
+                  });
+                }
+
+                return acc;
+              }, []) // Khởi tạo mảng trống cho reduce
+              .map((player, index) => (
+                <div
+                  key={index}
+                  className='flex items-center gap-4 bg-gray-100 p-2 rounded-md'
+                >
+                  <div>
+                    <p className='font-medium'>{player.PlayerName}</p>
+                  </div>
+                  <div className='text-red-600 font-bold'>
+                    {player.CardMinutes.map((minute, i) => (
+                      <span key={i}>
+                        {minute}'{i < player.CardMinutes.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* Icon bóng đá nếu có cầu thủ nhận thẻ */}
+          {playerCardInfo &&
+            playerCardInfo.some((player) => player.CardType === 'Thẻ đỏ') && (
+              <div>
+                <img
+                  className='w-6 h-6'
+                  src='/assets/img/red-card.png'
+                  alt='red-card'
+                />
+              </div>
+            )}
+
+          {/* Danh sách cầu thủ nhận thẻ đỏ của đội khách */}
+          <div>
+            {playerCardInfo
+              .filter(
+                (player) =>
+                  player.Team === matchInfo.awayTeam.name &&
+                  player.CardType === 'Thẻ đỏ' // Lọc thẻ đỏ
+              )
+              .reduce((acc, player) => {
+                // Tìm cầu thủ đã có trong acc
+                const existingPlayer = acc.find(
+                  (p) => p.PlayerName === player.PlayerName
+                );
+
+                if (existingPlayer) {
+                  // Nếu cầu thủ đã có trong acc, thêm phút nhận thẻ vào mảng phút của cầu thủ đó
+                  existingPlayer.CardMinutes.push(player.Minute);
+                } else {
+                  // Nếu cầu thủ chưa có, tạo mới một đối tượng cho cầu thủ đó
+                  acc.push({
+                    PlayerID: player.PlayerID,
+                    PlayerName: player.PlayerName,
+                    CardMinutes: [player.Minute],
+                  });
+                }
+
+                return acc;
+              }, []) // Khởi tạo mảng trống cho reduce
+              .map((player, index) => (
+                <div
+                  key={index}
+                  className='flex items-center gap-4 bg-gray-100 p-2 rounded-md'
+                >
+                  <div>
+                    <p className='font-medium'>{player.PlayerName}</p>
+                  </div>
+                  <div className='text-red-600 font-bold'>
+                    {player.CardMinutes.map((minute, i) => (
+                      <span key={i}>
+                        {minute}'{i < player.CardMinutes.length - 1 && ', '}
+                      </span>
+                    ))}
                   </div>
                 </div>
               ))}

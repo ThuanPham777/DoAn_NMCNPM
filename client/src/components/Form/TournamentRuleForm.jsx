@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 const TournamentRuleForm = () => {
   const user = useSelector((state) => state.user.user);
   const { selectedTournament } = useSelector((state) => state.tournament);
+  const isCreatedSchedule = localStorage.getItem('isCreatedSchedule') || false;
 
   // Dữ liệu mặc định của điều lệ giải
   const defaultRules = {
@@ -143,14 +144,14 @@ const TournamentRuleForm = () => {
                   name={key}
                   value={formData[key]}
                   onChange={handleChange}
-                  disabled={!isAdmin} // Không cho phép chỉnh sửa nếu không phải admin hoặc giải đã bắt đầu
+                  disabled={!isAdmin || isCreatedSchedule} // Không cho phép chỉnh sửa nếu không phải admin hoặc giải đã bắt đầu
                   className='border p-2 w-full rounded-md'
                 />
               </div>
             ))}
         </div>
 
-        {isAdmin && (
+        {isAdmin && isCreatedSchedule === false && (
           <div className='flex gap-4 justify-center'>
             <button
               type='submit'

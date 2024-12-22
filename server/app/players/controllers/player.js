@@ -63,20 +63,10 @@ exports.addPlayer = async (req, res) => {
       .execute('addPlayer');
 
     return res.status(201).json({
-      message: 'Player added successfully',
       result: result.recordset,
     });
   } catch (error) {
     console.error('Error adding player:', error);
-
-    // Nếu lỗi từ SQL Server (ví dụ lỗi từ trigger)
-    console.log('error number:', error.number);
-    if (error.number === 50000) {
-      // Lỗi từ RAISERROR trong SQL Server
-      return res.status(400).json({
-        message: error.message, // Lấy thông báo lỗi từ trigger
-      });
-    }
 
     return res.status(500).json({
       message: 'Internal server error',
@@ -125,6 +115,7 @@ exports.getAllPlayersAttendingTournament = async (req, res) => {
       .input('TournamentID', TournamentID)
       .execute('getAllPlayersAttendingTournament');
 
+    console.log('result: ' + JSON.stringify(result.recordset, null, 2));
     res.json({
       message: 'success',
       data: result.recordset,
@@ -230,7 +221,6 @@ exports.updatePlayer = async (req, res) => {
       .execute('updatePlayer');
 
     return res.status(200).json({
-      message: 'Player updated successfully',
       result: result.recordset,
     });
   } catch (error) {

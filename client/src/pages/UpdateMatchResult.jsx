@@ -20,11 +20,10 @@ const UpdateMatchResult = () => {
   const { selectedTournament } = useSelector((state) => state.tournament);
   const [matchScoreInfo, setMatchScoreInfo] = useState(null);
   const [playerScoreInfo, setPlayersScoreInfo] = useState([]);
+  const [playerCardInfo, setPlayersCardInfo] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisibleEditAndDelete, setIsModalVisibleEditAndDelete] =
     useState(false);
-  // for edit
-  const [selectedGoal, setSelectedGoal] = useState();
   const [selectedPlayer, setSelectedPlayer] = useState();
   const [modalType, setModalType] = useState(null);
   const [rules, setRules] = useState();
@@ -80,6 +79,8 @@ const UpdateMatchResult = () => {
         console.log(result.data.matchInfo);
         setPlayersScoreInfo(result.data.playerDetails);
         console.log(result.data.playerDetails);
+        setPlayersCardInfo(result.data.cardPlayerDetails);
+        console.log(result.data.cardPlayerDetails);
       } else {
         throw new Error('Failed to fetch match details.');
       }
@@ -173,7 +174,7 @@ const UpdateMatchResult = () => {
   };
 
   const addCard = async () => {
-    if (!selectedPlayerID || !scoreTime || !selectedTeam) {
+    if (!selectedPlayerID || !scoreType || scoreTime === null) {
       toast.error('Vui lòng nhập đầy đủ thông tin!');
       return;
     }
@@ -245,7 +246,7 @@ const UpdateMatchResult = () => {
     <>
       <h1 className='text-xl font-bold mb-6'>Cập nhật kết quả trận đấu</h1>
       <div className='flex flex-col items-center p-6 '>
-        <div className='flex justify-center items-center gap-20 mb-6'>
+        <div className='flex justify-between items-center gap-20 mb-6'>
           <div>
             <div className='text-center'>
               <img
@@ -289,10 +290,10 @@ const UpdateMatchResult = () => {
           </div>
         </div>
 
-        {/*  */}
-        <div className='flex justify-center items-center gap-20'>
+        {/* Danh sách cầu thủ ghi bàn của cả 2 đội */}
+        <div className='flex justify-between items-center gap-20 mb-6'>
           {/* Danh sách các cầu thủ ghi bàn của đội nhà */}
-          <div className=''>
+          <div>
             {playerScoreInfo
               .filter((player) => player.Team === matchInfo.homeTeam.name)
               .reduce((acc, player) => {
@@ -430,8 +431,117 @@ const UpdateMatchResult = () => {
           </div>
         </div>
 
+        {/* Danh sách thẻ đỏ ở hai đội */}
+        <div className='flex justify-between items-center gap-20 mb-6'>
+          {/* Danh sách cầu thủ nhận thẻ đỏ của đội nhà */}
+          <div>
+            {playerCardInfo
+              .filter(
+                (player) =>
+                  player.Team === matchInfo.homeTeam.name &&
+                  player.CardType === 'Thẻ đỏ' // Lọc thẻ đỏ
+              )
+              .reduce((acc, player) => {
+                // Tìm cầu thủ đã có trong acc
+                const existingPlayer = acc.find(
+                  (p) => p.PlayerName === player.PlayerName
+                );
+
+                if (existingPlayer) {
+                  // Nếu cầu thủ đã có trong acc, thêm phút nhận thẻ vào mảng phút của cầu thủ đó
+                  existingPlayer.CardMinutes.push(player.Minute);
+                } else {
+                  // Nếu cầu thủ chưa có, tạo mới một đối tượng cho cầu thủ đó
+                  acc.push({
+                    PlayerID: player.PlayerID,
+                    PlayerName: player.PlayerName,
+                    CardMinutes: [player.Minute],
+                  });
+                }
+
+                return acc;
+              }, []) // Khởi tạo mảng trống cho reduce
+              .map((player, index) => (
+                <div
+                  key={index}
+                  className='flex items-center gap-4 bg-gray-100 p-2 rounded-md'
+                >
+                  <div>
+                    <p className='font-medium'>{player.PlayerName}</p>
+                  </div>
+                  <div className='text-red-600 font-bold'>
+                    {player.CardMinutes.map((minute, i) => (
+                      <span key={i}>
+                        {minute}'{i < player.CardMinutes.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* Icon bóng đá nếu có cầu thủ nhận thẻ */}
+          {playerCardInfo &&
+            playerCardInfo.some((player) => player.CardType === 'Thẻ đỏ') && (
+              <div>
+                <img
+                  className='w-6 h-6'
+                  src='/assets/img/red-card.png'
+                  alt='red-card'
+                />
+              </div>
+            )}
+
+          {/* Danh sách cầu thủ nhận thẻ đỏ của đội khách */}
+          <div>
+            {playerCardInfo
+              .filter(
+                (player) =>
+                  player.Team === matchInfo.awayTeam.name &&
+                  player.CardType === 'Thẻ đỏ' // Lọc thẻ đỏ
+              )
+              .reduce((acc, player) => {
+                // Tìm cầu thủ đã có trong acc
+                const existingPlayer = acc.find(
+                  (p) => p.PlayerName === player.PlayerName
+                );
+
+                if (existingPlayer) {
+                  // Nếu cầu thủ đã có trong acc, thêm phút nhận thẻ vào mảng phút của cầu thủ đó
+                  existingPlayer.CardMinutes.push(player.Minute);
+                } else {
+                  // Nếu cầu thủ chưa có, tạo mới một đối tượng cho cầu thủ đó
+                  acc.push({
+                    PlayerID: player.PlayerID,
+                    PlayerName: player.PlayerName,
+                    CardMinutes: [player.Minute],
+                  });
+                }
+
+                return acc;
+              }, []) // Khởi tạo mảng trống cho reduce
+              .map((player, index) => (
+                <div
+                  key={index}
+                  className='flex items-center gap-4 bg-gray-100 p-2 rounded-md'
+                >
+                  <div>
+                    <p className='font-medium'>{player.PlayerName}</p>
+                  </div>
+                  <div className='text-red-600 font-bold'>
+                    {player.CardMinutes.map((minute, i) => (
+                      <span key={i}>
+                        {minute}'{i < player.CardMinutes.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+
         {matchStatus === 'Đã diễn ra' && user?.Role === 'Admin' && (
-          <div className='flex flex-col items-center gap-4'>
+          <div className='flex flex-col items-center gap-4 mt-8'>
             <Button
               onClick={() => showModal('goal')}
               className='bg-purple-600 text-white w-40 rounded-lg'
@@ -533,8 +643,8 @@ const UpdateMatchResult = () => {
                   placeholder='Chọn loại thẻ'
                   onChange={handleScoreTypeChange}
                 >
-                  <Option value='yellow'>Thẻ vàng</Option>
-                  <Option value='red'>Thẻ đỏ</Option>
+                  <Option value='Thẻ vàng'>Thẻ vàng</Option>
+                  <Option value='Thẻ đỏ'>Thẻ đỏ</Option>
                 </Select>
               </Form.Item>
               <Form.Item label='Thời điểm nhận thẻ'>

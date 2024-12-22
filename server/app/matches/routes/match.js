@@ -8,6 +8,11 @@ router.post(
   matchController.addMatchScore
 );
 
+router.post(
+  '/:MatchID/round/:RoundID/tournament/:TournamentID/add-card/player/:PlayerID',
+  matchController.addMatchCard
+);
+
 router.delete(
   '/:MatchID/round/:RoundID/tournament/:TournamentID/delete-goal/player/:PlayerID/minute/:minute',
   matchController.deleteMatchScore
