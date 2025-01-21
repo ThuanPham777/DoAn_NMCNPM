@@ -57,7 +57,7 @@ const Rank = () => {
               >
                 <td className='border-b px-4 py-2 flex items-center gap-2'>
                   <img
-                    src={`http://localhost:3000/uploads/players/${player.ProfileImg}`}
+                    src={player.ProfileImg}
                     alt={player.PlayerName}
                     className='w-8 h-8 rounded-full'
                   />

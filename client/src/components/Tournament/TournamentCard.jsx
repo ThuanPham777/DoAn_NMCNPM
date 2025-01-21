@@ -23,7 +23,7 @@ const TournamentCard = ({ tournament }) => {
       onClick={handleClick}
     >
       <img
-        src={`http://localhost:3000/uploads/tournaments/${tournament.TournamentLogo}`}
+        src={tournament.TournamentLogo}
         alt={tournament.TournamentName}
         className='w-54 h-54 mb-2 object-cover'
       />

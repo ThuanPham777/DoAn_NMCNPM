@@ -13,11 +13,11 @@ const MatchResultDetail = () => {
   const matchInfo = {
     homeTeam: {
       name: match.team1Name,
-      logo: `http://localhost:3000/uploads/teams/${match.team1Logo}`,
+      logo: match.team1Logo,
     },
     awayTeam: {
       name: match.team2Name,
-      logo: `http://localhost:3000/uploads/teams/${match.team2Logo}`,
+      logo: match.team2Logo,
     },
   };
 

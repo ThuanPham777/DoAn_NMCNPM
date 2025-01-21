@@ -13,7 +13,7 @@ const TeamCard = ({ team }) => {
       }
     >
       <img
-        src={`http://localhost:3000/uploads/teams/${team.TeamLogo}`}
+        src={team.TeamLogo}
         alt={team.TeamName}
         className='w-full h-52 object-cover rounded-md mb-2'
       />

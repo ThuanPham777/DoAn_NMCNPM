@@ -154,7 +154,7 @@ const AddTeamForm = () => {
           />
           {logo && typeof logo === 'string' ? (
             <img
-              src={`http://localhost:3000/uploads/teams/${logo}`}
+              src={logo}
               alt='Team Logo'
               className='mt-2 w-32 h-32 object-cover'
             />

@@ -33,9 +33,7 @@ const TournamentForm = ({ mode = 'create', initialData = null }) => {
       setValue('endDate', formatDate(initialData.EndDate));
 
       if (initialData.TournamentLogo) {
-        setImage(
-          `http://localhost:3000/uploads/tournaments/${initialData.TournamentLogo}`
-        );
+        setImage(initialData.TournamentLogo);
       }
     }
   }, [mode, initialData, setValue]);

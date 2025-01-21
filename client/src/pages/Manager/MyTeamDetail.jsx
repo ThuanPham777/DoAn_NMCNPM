@@ -41,7 +41,7 @@ const MyTeamDetail = () => {
       key: 'ProfileImg',
       render: (text) => (
         <img
-          src={`http://localhost:3000/uploads/players/${text}`}
+          src={text}
           alt='Profile'
           style={{
             width: '50px',

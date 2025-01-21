@@ -62,7 +62,7 @@ const Rank = () => {
                   <td className='px-6 py-3 flex items-center gap-2'>
                     {index + 1}
                     <img
-                      src={`http://localhost:3000/uploads/teams/${team.teamLogo}`}
+                      src={team.teamLogo}
                       alt={team.name}
                       className='w-8 h-8 rounded-full'
                     />

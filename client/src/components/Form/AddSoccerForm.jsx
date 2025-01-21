@@ -247,7 +247,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
               <img
                 src={
                   typeof image === 'string'
-                    ? `http://localhost:3000/uploads/players/${image}`
+                    ? `${image}`
                     : URL.createObjectURL(image)
                 }
                 alt='Player'
