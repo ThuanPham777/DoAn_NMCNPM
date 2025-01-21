@@ -40,7 +40,6 @@ export const fetchLogout = createAsyncThunk(
       const data = await response.json();
       // Xóa thông tin người dùng khỏi localStorage
       localStorage.removeItem('selectedTournament');
-      localStorage.removeItem('user');
       localStorage.removeItem('token');
       return data.message || 'Logged out successfully';
     } catch (error) {
@@ -64,7 +63,6 @@ const userSlice = createSlice({
       .addCase(fetchUserInfo.fulfilled, (state, action) => {
         state.user = action.payload;
         state.loading = false;
-        localStorage.setItem('user', JSON.stringify(action.payload)); // Lưu vào localStorage
       })
       .addCase(fetchUserInfo.rejected, (state, action) => {
         state.loading = false;

@@ -13,7 +13,6 @@ const AddMatchScheduleForm = () => {
   const navigate = useNavigate();
 
   const onSubmit = (data) => {
-    console.log('Form Data:', data);
     reset(); // Clear the form after submission
   };
 
@@ -121,7 +120,7 @@ const AddMatchScheduleForm = () => {
             Thêm đội
           </button>
           <button
-            type='button' // Set type to 'button' to avoid form submission
+            type='button'
             onClick={onCancel}
             className='bg-[#FF7856] text-white rounded-md p-2 hover:bg-red-600 transition duration-200'
           >

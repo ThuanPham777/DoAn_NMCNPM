@@ -11,7 +11,6 @@ const TournamentDetails = () => {
   const { selectedTournament } = useSelector((state) => state.tournament);
 
   const [teams, setTeams] = useState([]);
-  const [teamAttendTournament, setTeamAttendTournament] = useState([]);
   const [teamsAttendTournaments, setTeamsAttendTournaments] = useState([]);
   const [loading, setLoading] = useState(true); // State để quản lý loading
   const [filteredTeams, setFilteredTeams] = useState([]);
@@ -57,23 +56,6 @@ const TournamentDetails = () => {
     };
     fetchTeamsAttendTournaments();
   }, []);
-
-  // Lấy danh sách đội tham gia 1 giải đấu
-  const fetchTeamAttendTournament = async (TournamentID) => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/team/tournament/${TournamentID}/teams-attend-tournament`
-      );
-      if (!response.ok) {
-        throw new Error('Không thể lấy danh sách đội bóng tham gia.');
-      }
-      const result = await response.json();
-      console.log('result: ' + result.data);
-      setTeamAttendTournament(result.data || []);
-    } catch (error) {
-      console.error('Lỗi khi lấy đội bóng tham gia giải đấu:', error);
-    }
-  };
 
   // Tính toán các đội bóng chưa tham gia giải đấu.
   useEffect(() => {
@@ -153,7 +135,6 @@ const TournamentDetails = () => {
         onRegister={handleConfirmRegistration}
         teams={filteredTeams}
         selectedTournament={selectedTournament}
-        teamAttendTournament={teamAttendTournament}
         teamsAttendTournaments={teamsAttendTournaments}
       />
     </div>

@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const AddSoccerForm = ({ player, TeamID }) => {
-  const [rules, setRules] = useState();
-  const { selectedTournament } = useSelector((state) => state.tournament);
   const [players, setPlayers] = useState();
-  const [theNumberOfForeignPlayers, setTheNumberOfForeignPlayers] = useState(0); // Track foreign players
-
-  console.log('players', players);
 
   useEffect(() => {
     const fetchAllPlayersOfTeam = async () => {
@@ -27,7 +21,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
         // Parse the response as JSON
         const result = await response.json();
         setPlayers(result.data); // Lưu dữ liệu vào state myTeams
-        console.log('myTeams: ' + result.data);
+        //console.log('myTeams: ' + result.data);
       } catch (error) {
         console.error('Error fetching MyTeams:', error);
       }
@@ -35,27 +29,6 @@ const AddSoccerForm = ({ player, TeamID }) => {
 
     fetchAllPlayersOfTeam();
   }, []);
-
-  console.log('theNumberOfForeignPlayers', theNumberOfForeignPlayers);
-
-  useEffect(() => {
-    const fetchRule = async () => {
-      try {
-        const response = await fetch(
-          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
-        );
-        if (!response.ok) {
-          throw new Error('Failed to fetch rule');
-        }
-        const result = await response.json();
-        console.log('rules: ', result?.data);
-        setRules(result?.data);
-      } catch (error) {
-        console.error('Error loading data:', error);
-      }
-    };
-    fetchRule();
-  }, [selectedTournament]);
 
   const navigate = useNavigate();
 
@@ -80,7 +53,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
   // Populate form fields if editing an existing player
   useEffect(() => {
     if (player) {
-      setValue('PlayerName', player.PlayerName);
+      //setValue('PlayerName', player.PlayerName);
       const formatDate = (date) => {
         const d = new Date(date);
         const year = d.getFullYear();
@@ -100,17 +73,6 @@ const AddSoccerForm = ({ player, TeamID }) => {
 
   // Handle form submission
   const handleFormSubmit = async (data) => {
-    // Kiểm tra số lượng cầu thủ ngoài nước
-    if (
-      data.PlayerType === 'Ngoài nước' &&
-      theNumberOfForeignPlayers >= (rules?.MaxForeignPlayer || 0)
-    ) {
-      toast.error(
-        `Số lượng cầu thủ ngoài nước không được vượt quá ${rules?.MaxForeignPlayer}`
-      );
-      return;
-    }
-
     const formData = new FormData();
     formData.append('PlayerName', data.PlayerName);
     formData.append('DateOfBirth', data.DateOfBirth);
@@ -167,40 +129,6 @@ const AddSoccerForm = ({ player, TeamID }) => {
     }
   };
 
-  // Validate DateOfBirth for age range
-  const validateAge = (value) => {
-    const birthDate = new Date(value);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    if (rules) {
-      if (age < rules.MinAgePlayer) {
-        setError('DateOfBirth', {
-          type: 'manual',
-          message: `Tuổi không được nhỏ hơn ${rules.MinAgePlayer}`,
-        });
-        toast.error(`Tuổi không được nhỏ hơn ${rules.MinAgePlayer}`); // Toast lỗi tuổi
-        return false;
-      }
-      if (age > rules.MaxAgePlayer) {
-        setError('DateOfBirth', {
-          type: 'manual',
-          message: `Tuổi không được lớn hơn ${rules.MaxAgePlayer}`,
-        });
-        toast.error(`Tuổi không được lớn hơn ${rules.MaxAgePlayer}`); // Toast lỗi tuổi
-        return false;
-      }
-    }
-    return true;
-  };
-
   return (
     <div className='flex justify-center items-start mt-10'>
       <div className='max-w-lg mx-auto p-6 shadow-lg rounded-lg bg-white'>
@@ -235,7 +163,6 @@ const AddSoccerForm = ({ player, TeamID }) => {
               control={control}
               rules={{
                 required: 'Ngày sinh là bắt buộc',
-                validate: validateAge, // Validate age here
               }}
               render={({ field }) => (
                 <input

@@ -4,9 +4,9 @@ import AddSoccerForm from '../../components/Form/AddSoccerForm';
 
 const AddSoccer = () => {
   const { TeamID } = useParams();
-  console.log('TeamID in addSoccer: ', TeamID);
+  //console.log('TeamID in addSoccer: ', TeamID);
   const { PlayerID } = useParams(); // Lấy PlayerID từ URL params
-  console.log('useparams: ', useParams());
+  //console.log('useparams: ', useParams());
   const [player, setPlayer] = useState(null);
 
   useEffect(() => {

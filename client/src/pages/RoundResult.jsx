@@ -7,7 +7,6 @@ import { toast } from 'react-toastify';
 
 const RoundResult = () => {
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user.user);
   const { selectedTournament } = useSelector((state) => state.tournament);
 
   const [rounds, setRounds] = useState([]); // Danh sách các vòng đấu

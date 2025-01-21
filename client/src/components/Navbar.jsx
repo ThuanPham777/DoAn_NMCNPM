@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiLogIn, FiLogOut } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,13 +11,14 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await dispatch(fetchLogout()); // Gọi action logout
-      navigate('/login'); // Chuyển hướng đến trang login
+      // Wait for the logout action to complete before navigating
+      await dispatch(fetchLogout()).unwrap();
+      //console.log('logged out');
+      navigate('/login'); // Redirect to login after successful logout
     } catch (error) {
       console.error('Logout failed', error);
     }
   };
-
   return (
     <div className='flex justify-between items-center px-4 py-6 border-b shadow-md'>
       <h1 className='text-2xl font-bold'>GIẢI BÓNG ĐÁ VÔ ĐỊCH QUỐC GIA</h1>
