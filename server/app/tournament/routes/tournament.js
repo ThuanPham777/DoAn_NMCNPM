@@ -1,19 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const createUploadMiddleware = require('../../../middleware/uploadFile'); // Import middleware upload
-const uploadTournament = createUploadMiddleware('uploads/tournaments'); // Middleware upload cho tournaments
 
 const tournamentController = require('../controllers/tournament');
+const upload = require('../../../middleware/uploadFile');
 
 router.post(
   '/add',
-  uploadTournament.single('TournamentLogo'),
+  upload.single('TournamentLogo'),
   tournamentController.addTournament
 );
 
 router.put(
   '/update/:TournamentID',
-  uploadTournament.single('TournamentLogo'),
+  upload.single('TournamentLogo'),
   tournamentController.updateTournament
 );
 

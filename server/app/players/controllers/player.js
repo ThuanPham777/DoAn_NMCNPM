@@ -1,19 +1,19 @@
 const db = require('../../../config/db'); // Đảm bảo bạn đã cấu hình file db.js để kết nối SQL Server
+const {
+  storeImageInCloudinary,
+  deleteImageInCloudinary,
+} = require('../../../utils/cloudinaryHelpers');
 
 exports.addPlayer = async (req, res) => {
   try {
     const { DateOfBirth, PlayerName, JerseyNumber, HomeTown, PlayerType } =
       req.body;
-    const ProfileImg = req.file?.filename;
     const TeamID = parseInt(req.params.TeamID, 10);
+    let ProfileImg = null;
 
-    const validPlayerTypes = ['Trong nước', 'Ngoài nước'];
-    if (!validPlayerTypes.includes(PlayerType)) {
-      return res.status(400).json({
-        message: `Invalid PlayerType. Allowed values are: ${validPlayerTypes.join(
-          ', '
-        )}`,
-      });
+    if (req.file) {
+      const folder = 'football/players';
+      ProfileImg = await storeImageInCloudinary(req.file, folder);
     }
 
     // Kiểm tra nếu thiếu thông tin quan trọng
@@ -28,6 +28,15 @@ exports.addPlayer = async (req, res) => {
       return res
         .status(400)
         .json({ message: 'All required fields must be provided' });
+    }
+
+    const validPlayerTypes = ['Trong nước', 'Ngoài nước'];
+    if (!validPlayerTypes.includes(PlayerType)) {
+      return res.status(400).json({
+        message: `Invalid PlayerType. Allowed values are: ${validPlayerTypes.join(
+          ', '
+        )}`,
+      });
     }
 
     // Kiểm tra định dạng của DateOfBirth (Phải là ngày hợp lệ)
@@ -161,8 +170,6 @@ exports.updatePlayer = async (req, res) => {
     const TeamID = parseInt(req.params.TeamID, 10);
     const { DateOfBirth, PlayerName, JerseyNumber, HomeTown, PlayerType } =
       req.body;
-    let ProfileImg = req.file?.filename; // Lấy ảnh từ file upload
-
     if (
       !PlayerID ||
       !TeamID ||
@@ -200,12 +207,25 @@ exports.updatePlayer = async (req, res) => {
     const pool = await db();
 
     // Nếu không có tệp ảnh mới, lấy giá trị `ProfileImg` hiện tại từ cơ sở dữ liệu
-    if (!ProfileImg) {
-      const currentPlayer = await pool
-        .request()
-        .input('PlayerID', PlayerID)
-        .execute('getPlayerById'); // Hàm `getPlayerByID` phải trả về thông tin cầu thủ hiện tại
-      ProfileImg = currentPlayer.recordset[0]?.ProfileImg || null;
+    let ProfileImg = null;
+
+    const currentPlayer = await pool
+      .request()
+      .input('PlayerID', PlayerID)
+      .execute('getPlayerById'); // Hàm `getPlayerByID` phải trả về thông tin cầu thủ hiện tại
+    if (!currentPlayer.recordset[0]) {
+      return res.status(404).json({ message: 'Player not found' });
+    }
+
+    const currentProfileImage = currentPlayer.recordset[0].ProfileImg;
+
+    if (req.file) {
+      const folder = 'football/players';
+      ProfileImg = await storeImageInCloudinary(req.file, folder);
+      // delete current profile image
+      await deleteImageInCloudinary(currentProfileImage);
+    } else {
+      ProfileImg = currentProfileImage;
     }
 
     const result = await pool

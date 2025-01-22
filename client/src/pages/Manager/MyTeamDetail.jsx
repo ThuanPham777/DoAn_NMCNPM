@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Table, Input, Button, Spin, Alert } from 'antd';
-import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
 
 const { Search } = Input;
 
 const MyTeamDetail = () => {
   const { TeamID } = useParams();
-  const { selectedTournament } = useSelector((state) => state.tournament);
+  console.log('team: ' + TeamID);
 
   //console.log('TeamID', TeamID);
   const [players, setPlayers] = useState([]);
@@ -110,6 +109,7 @@ const MyTeamDetail = () => {
           <Button
             type='primary'
             className='bg-[#56FF61] hover:bg-[#3eeb4a]'
+            onClick={() => navigate(`/my-team-detail/${TeamID}/add-soccer`)}
           >
             Thêm cầu thủ
           </Button>

@@ -4,42 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const AddSoccerForm = ({ player, TeamID }) => {
-  const [players, setPlayers] = useState();
-
-  useEffect(() => {
-    const fetchAllPlayersOfTeam = async () => {
-      try {
-        // Fetching data using fetch API
-        const response = await fetch(
-          `http://localhost:3000/api/player/team/${TeamID}`
-        );
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        // Parse the response as JSON
-        const result = await response.json();
-        setPlayers(result.data); // Lưu dữ liệu vào state myTeams
-        //console.log('myTeams: ' + result.data);
-      } catch (error) {
-        console.error('Error fetching MyTeams:', error);
-      }
-    };
-
-    fetchAllPlayersOfTeam();
-  }, []);
-
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (players && Array.isArray(players)) {
-      const countForeignPlayers = players.reduce((total, player) => {
-        return player.PlayerType === 'Ngoài nước' ? total + 1 : total;
-      }, 0);
-      setTheNumberOfForeignPlayers(countForeignPlayers);
-    }
-  }, [players]);
 
   const {
     control,
@@ -53,7 +18,7 @@ const AddSoccerForm = ({ player, TeamID }) => {
   // Populate form fields if editing an existing player
   useEffect(() => {
     if (player) {
-      //setValue('PlayerName', player.PlayerName);
+      setValue('PlayerName', player.PlayerName);
       const formatDate = (date) => {
         const d = new Date(date);
         const year = d.getFullYear();

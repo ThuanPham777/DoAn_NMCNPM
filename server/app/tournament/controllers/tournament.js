@@ -1,11 +1,21 @@
 const db = require('../../../config/db');
 const AppError = require('../../../utils/appError');
+const {
+  storeImageInCloudinary,
+  deleteImageInCloudinary,
+} = require('../../../utils/cloudinaryHelpers');
 
 exports.addTournament = async (req, res, next) => {
   try {
     // Lấy thông tin từ req.body và file
     const { TournamentName, StartDate, EndDate } = req.body;
-    const TournamentLogo = req.file ? req.file.filename : null;
+
+    let TournamentLogo = null;
+    if (req.file) {
+      const folder = 'football/tournaments';
+      TournamentLogo = await storeImageInCloudinary(req.file, folder);
+      //console.log('tournamentLogo', TournamentLogo);
+    }
 
     if (!TournamentName || !StartDate || !EndDate) {
       throw new AppError('Missing required fields', 400);
@@ -33,7 +43,6 @@ exports.addTournament = async (req, res, next) => {
     res.json({
       message: 'Tournament added successfully',
       data: result.recordset[0],
-      filePath: `/uploads/tournaments/${TournamentLogo}`,
     });
 
     console.log('New tournament added:', result.recordset[0]);
@@ -123,7 +132,15 @@ exports.updateTournament = async (req, res) => {
       currentTournamentResult.recordset[0].TournamentLogo;
 
     // If a new logo file is uploaded, use that logo; otherwise, retain the existing logo
-    const TournamentLogo = req.file ? req.file.filename : currentTournamentLogo;
+    let TournamentLogo = null;
+    if (req.file) {
+      const folder = 'football/tournaments';
+      TournamentLogo = await storeImageInCloudinary(req.file, folder);
+      console.log('TournamentLogo', TournamentLogo);
+      await deleteImageInCloudinary(currentTournamentLogo);
+    } else {
+      TournamentLogo = currentTournamentLogo;
+    }
 
     // Execute stored procedure to update the tournament
     const result = await pool

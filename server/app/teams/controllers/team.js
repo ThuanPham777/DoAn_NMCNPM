@@ -1,11 +1,19 @@
 const db = require('../../../config/db');
 const AppError = require('../../../utils/appError');
 const sql = require('mssql');
+const {
+  storeImageInCloudinary,
+  deleteImageInCloudinary,
+} = require('../../../utils/cloudinaryHelpers');
 exports.addTeam = async (req, res, next) => {
   try {
     const { TeamName, Stadium, Coach } = req.body;
-    const TeamLogo = req.file?.filename; // Get the uploaded file name from multer
     const UserID = parseInt(req.user.UserID, 10);
+    let TeamLogo = null;
+    if (req.file) {
+      const folder = 'football/teams';
+      TeamLogo = await storeImageInCloudinary(req.file, folder);
+    }
 
     if (!TeamName || !Stadium || !Coach || isNaN(UserID)) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -163,8 +171,15 @@ exports.updateTeam = async (req, res) => {
 
     const currentTeamLogo = currentTeamResult.recordset[0].TeamLogo;
 
-    // If a new logo file is uploaded, use that logo
-    const TeamLogo = req.file ? req.file.filename : currentTeamLogo;
+    let TeamLogo = null;
+    if (req.file) {
+      const folder = 'football/teams';
+      TeamLogo = await storeImageInCloudinary(req.file, folder);
+      // delete currentTeamLogo
+      await deleteImageInCloudinary(currentTeamLogo);
+    } else {
+      TeamLogo = currentTeamLogo; // Use the existing logo if no new file is provided
+    }
 
     // Call the stored procedure to update the team details
     const result = await pool

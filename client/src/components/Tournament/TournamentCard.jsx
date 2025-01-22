@@ -27,6 +27,7 @@ const TournamentCard = ({ tournament }) => {
         alt={tournament.TournamentName}
         className='w-54 h-54 mb-2 object-cover'
       />
+      {console.log(tournament.TournamentLogo)}
       <p className='text-center font-medium'>{tournament.TournamentName}</p>
       <p className='text-center font-medium'>
         {new Date(tournament.StartDate).toLocaleDateString()} -{' '}
