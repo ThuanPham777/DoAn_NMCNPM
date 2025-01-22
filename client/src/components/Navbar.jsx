@@ -1,19 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiLogIn, FiLogOut } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchLogout } from '../redux/slices/authSlice';
+import { fetchLogout, fetchUserInfo } from '../redux/slices/authSlice';
 
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.user);
+  useEffect(() => {
+    if (!user) {
+      dispatch(fetchUserInfo());
+    }
+  }, [dispatch, user]);
 
   const handleLogout = async () => {
     try {
-      // Wait for the logout action to complete before navigating
       await dispatch(fetchLogout()).unwrap();
-      //console.log('logged out');
       navigate('/login'); // Redirect to login after successful logout
     } catch (error) {
       console.error('Logout failed', error);
