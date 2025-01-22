@@ -26,4 +26,6 @@ router.get('/team/:TeamID', playerController.getAllPlayersOfTeam);
 
 router.get('/:PlayerID', playerController.getPlayerById);
 
+router.delete('/:PlayerID/delete', playerController.deletePlayer);
+
 module.exports = router;

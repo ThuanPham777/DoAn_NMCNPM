@@ -32,6 +32,27 @@ const MyTeamDetail = () => {
     fetchPlayersOfTeam();
   }, [TeamID]);
 
+  const handleDeletePlayer = (playerId) => {
+    console.log('Deleting player with ID:', playerId);
+    if (window.confirm('Bạn có chắc chắn xóa cầu thủ này?')) {
+      fetch(`http://localhost:3000/api/player/${playerId}/delete`, {
+        method: 'DELETE',
+      })
+        .then((response) => response.json())
+        .then((result) => {
+          console.log('result: ' + JSON.stringify(result));
+          if (result.success) {
+            setPlayers(players.filter((player) => player.id !== playerId));
+            toast.success(result.message);
+            console.log('Xóa cầu thủ thành công');
+          } else {
+            console.error('Xóa cầu thủ thất bại');
+          }
+        })
+        .catch((error) => console.error(error));
+    }
+  };
+
   const columns = [
     {
       title: 'Ảnh đại diện',
@@ -84,14 +105,22 @@ const MyTeamDetail = () => {
       title: 'Thao tác',
       key: 'actions',
       render: (_, record) => (
-        <Button
-          type='link'
-          onClick={() =>
-            navigate(`/my-team-detail/${TeamID}/edit-soccer/${record.key}`)
-          }
-        >
-          Sửa
-        </Button>
+        <>
+          <Button
+            type='link'
+            onClick={() =>
+              navigate(`/my-team-detail/${TeamID}/edit-soccer/${record.key}`)
+            }
+          >
+            Sửa
+          </Button>
+          <button
+            className='bg-red-500 text-white px-4 py-2 hover:bg-red-700'
+            onClick={() => handleDeletePlayer(record.key)}
+          >
+            Xóa
+          </button>
+        </>
       ),
     },
   ];

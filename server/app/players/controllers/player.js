@@ -264,3 +264,39 @@ exports.updatePlayer = async (req, res) => {
     });
   }
 };
+
+exports.deletePlayer = async (req, res) => {
+  try {
+    const PlayerID = parseInt(req.params.PlayerID, 10);
+    console.log('Deleting player', PlayerID);
+    if (!PlayerID) {
+      return res.status(400).json({ message: 'Missing PlayerID' });
+    }
+    const pool = await db();
+    const result = await pool
+      .request()
+      .input('PlayerID', PlayerID)
+      .execute('deletePlayer');
+
+    // xóa ảnh trên cloudinary
+    const currentPlayer = await pool
+      .request()
+      .input('PlayerID', PlayerID)
+      .execute('getPlayerById'); // Hàm `getPlayerByID` phải trả về thông tin cầu thủ hiện tại
+
+    if (currentPlayer.recordset[0] && currentPlayer.recordset[0].ProfileImg) {
+      await deleteImageInCloudinary(currentPlayer.recordset[0].ProfileImg);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Player deleted successfully',
+    });
+  } catch (err) {
+    console.error('Error deleting player:', err);
+    return res.status(500).json({
+      message: 'Internal server error',
+      error: err.message,
+    });
+  }
+};
