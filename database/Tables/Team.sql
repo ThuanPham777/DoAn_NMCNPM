@@ -1,0 +1,9 @@
+CREATE TABLE Team
+(
+    TeamID INT IDENTITY(1,1) PRIMARY KEY,
+    TeamName NVARCHAR(100) NOT NULL,
+    Stadium NVARCHAR(100),
+    Coach NVARCHAR(100),
+    TeamLogo VARCHAR(200),
+    UserID INT,
+);
