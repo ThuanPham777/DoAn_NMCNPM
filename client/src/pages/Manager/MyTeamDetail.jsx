@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Table, Input, Button, Spin, Alert } from 'antd';
-import { useSelector } from 'react-redux';
+import { Table, Input, Button } from 'antd';
 
 const { Search } = Input;
 

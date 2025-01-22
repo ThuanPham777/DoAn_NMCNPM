@@ -65,20 +65,15 @@ const AddSoccerForm = ({ player, TeamID }) => {
         body: formData,
       });
 
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log('API Response:', responseData);
+      const responseData = await response.json();
 
-        // Xử lý thông báo lỗi từ backend
-        if (responseData.message) {
-          toast.error(responseData.message);
-        } else {
-          toast.success('Cập nhật thành công!');
-          navigate('/'); // Điều hướng sau khi thành công
-        }
+      // Check if the response contains a message
+      if (responseData?.message) {
+        toast.error(responseData.message); // Display the violation message from the backend
       } else {
-        console.error('Error submitting form:', response.statusText);
-        toast.error('Cập nhật thất bại, vui lòng thử lại!');
+        // If no message, assume success
+        toast.success('Cập nhật thành công!');
+        navigate('/'); // Redirect after success
       }
     } catch (error) {
       console.error('Error submitting form:', error);

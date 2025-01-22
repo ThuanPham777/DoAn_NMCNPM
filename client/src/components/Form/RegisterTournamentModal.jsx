@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const RegisterTournamentModal = ({
   isOpen,
@@ -10,9 +11,6 @@ const RegisterTournamentModal = ({
   selectedTournament,
   teamsAttendTournaments,
 }) => {
-  // State để lưu danh sách các đội được chọn
-  //console.log('RegisterTournament teams', teams);
-  //console.log('teams.length', teamAttendTournament.length);
   const user = useSelector((state) => state.user.user);
   const [selectedTeams, setSelectedTeams] = useState([]);
   const [loading, setLoading] = useState(false); // Để hiển thị trạng thái đang tải
@@ -59,13 +57,13 @@ const RegisterTournamentModal = ({
         }
       );
 
-      if (!response.ok) {
-        throw new Error('Đăng ký giải đấu không thành công');
-      }
-
       const data = await response.json();
+      if (data?.message) {
+        toast.error(data.message); // Display the violation message from the backend
+        return;
+      }
       if (data.success) {
-        //toast.success('Đăng ký đôi bóng thành công');
+        toast.success('Đăng ký đôi bóng thành công');
         onRegister(selectedTeams); // Thực hiện đăng ký thành công, có thể xử lý thêm
         navigate('/team');
         onClose();

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const TournamentRuleForm = () => {
   const user = useSelector((state) => state.user.user);
@@ -105,7 +106,7 @@ const TournamentRuleForm = () => {
 
       if (response.ok) {
         console.log('Dữ liệu đã được cập nhật thành công');
-        alert('Dữ liệu đã được cập nhật');
+        toast.success('Dữ liệu đã được cập nhật');
       } else {
         console.error('Lỗi khi cập nhật dữ liệu');
         alert('Lỗi khi cập nhật dữ liệu');

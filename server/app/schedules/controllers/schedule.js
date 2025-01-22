@@ -128,11 +128,14 @@ exports.createSchedule = async (req, res) => {
       }
     }
 
-    res
-      .status(201)
-      .json({ message: 'Lịch thi đấu đã được tạo lại thành công!' });
+    res.status(201).json({ success: true });
   } catch (error) {
     console.error('Error creating schedule:', error);
+    if (error.number === 50000) {
+      return res.status(400).json({
+        message: error.message, // Send the specific violation message from the trigger
+      });
+    }
     res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
-import {
-  Button,
-  Table,
-  Pagination,
-  message,
-  Modal,
-  Input,
-  DatePicker,
-} from 'antd';
+import { Button, Table, Pagination, Modal, DatePicker } from 'antd';
 import { IoFlagOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -22,47 +14,9 @@ const MatchSchedule = () => {
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
-  const [teams, setTeams] = useState([]);
-  const [rules, setRules] = useState();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentMatch, setCurrentMatch] = useState(null);
   const [newMatchTime, setNewMatchTime] = useState(null);
-
-  useEffect(() => {
-    try {
-      const fetchRule = async () => {
-        const response = await fetch(
-          `http://localhost:3000/api/rule/tournament/${selectedTournament.TournamentID}`
-        );
-        if (!response.ok) {
-          throw new Error('Failed to fetch rule');
-        }
-        const result = await response.json();
-        console.log('rules: ', result.data);
-        setRules(result.data);
-      };
-
-      fetchRule();
-    } catch (error) {
-      console.error('Error loading data:', error);
-    }
-  }, []);
-
-  const fetchTeams = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/team/tournament/${selectedTournament.TournamentID}/teams-attend-tournament`,
-        {
-          method: 'GET',
-        }
-      );
-      const result = await response.json();
-      console.log('Danh sách các đội bóng', result.data);
-      setTeams(result.data); // Lưu danh sách đội bóng vào state
-    } catch (error) {
-      console.error('Error fetching teams:', error);
-    }
-  };
 
   // Hàm lấy lịch thi đấu từ backend
   const fetchSchedule = async () => {
@@ -80,11 +34,10 @@ const MatchSchedule = () => {
         setSchedule(result.data);
       } else {
         const error = await response.json();
-        message.error(error.message || 'Failed to fetch schedule.');
+        console.log(error);
       }
     } catch (error) {
       console.error('Error fetching schedule:', error);
-      message.error('An error occurred while fetching the schedule.');
     } finally {
       setLoading(false);
     }
@@ -92,25 +45,6 @@ const MatchSchedule = () => {
 
   // Hàm tạo lịch thi đấu
   const createSchedule = async () => {
-    // check rule
-
-    if (rules && teams.length < rules.MinTeam) {
-      message.error(
-        'Số đội bóng phải ít nhất' + rules.MinTeam + 'để tạo lịch thi đấu.'
-      );
-      return;
-    }
-
-    if (!selectedTournament || !teams.length) return;
-
-    // Tính số vòng đấu cần thiết từ số đội tham gia
-    const newRound = teams.length - 1;
-    // Kiểm tra xem lịch thi đấu đã đủ vòng đấu chưa
-    if (newRound <= schedule.length) {
-      message.warning('Lịch thi đấu đã được tạo trước đó!');
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await fetch(
@@ -121,17 +55,17 @@ const MatchSchedule = () => {
         }
       );
 
-      if (response.ok) {
-        message.success('Lịch thi đấu đã được tạo thành công!');
-        localStorage.setItem('isCreatedSchedule', true);
+      const data = await response.json();
+      if (data?.message) {
+        toast.error(data.message);
+        return;
+      }
+      if (data?.success) {
+        toast.success('Lịch thi đấu đã được tạo thành công!');
         fetchSchedule(); // Lấy lại lịch thi đấu sau khi tạo
-      } else {
-        const error = await response.json();
-        message.error(error.message || 'Failed to create schedule.');
       }
     } catch (error) {
       console.error('Error creating schedule:', error);
-      message.error('An error occurred while creating the schedule.');
     } finally {
       setLoading(false);
     }
@@ -146,7 +80,7 @@ const MatchSchedule = () => {
 
   const handleModalOk = async () => {
     if (!newMatchTime) {
-      message.error('Please select a new time for the match');
+      toast.error('Please select a new time for the match');
       return;
     }
 
@@ -161,16 +95,14 @@ const MatchSchedule = () => {
       );
 
       if (response.ok) {
-        message.success('Match time updated successfully!');
+        toast.success('Match time updated successfully!');
         fetchSchedule(); // Refresh the schedule
         setIsModalVisible(false);
       } else {
         const error = await response.json();
-        message.error(error.message || 'Failed to update match time.');
       }
     } catch (error) {
       console.error('Error updating match:', error);
-      message.error('An error occurred while updating the match time.');
     }
   };
 
@@ -183,7 +115,6 @@ const MatchSchedule = () => {
   useEffect(() => {
     if (selectedTournament) {
       fetchSchedule();
-      fetchTeams(); // Fetch teams whenever the selectedTournament changes
     }
   }, [selectedTournament]);
 

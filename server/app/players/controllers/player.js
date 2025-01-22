@@ -77,6 +77,12 @@ exports.addPlayer = async (req, res) => {
   } catch (error) {
     console.error('Error adding player:', error);
 
+    if (error.number === 50000) {
+      return res.status(400).json({
+        message: error.message, // Send the specific violation message from the trigger
+      });
+    }
+
     return res.status(500).json({
       message: 'Internal server error',
       error: error.message,
@@ -245,6 +251,13 @@ exports.updatePlayer = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating player:', error);
+
+    if (error.number === 50000) {
+      return res.status(400).json({
+        message: error.message, // Send the specific violation message from the trigger
+      });
+    }
+
     return res.status(500).json({
       message: 'Internal server error',
       error: error.message,

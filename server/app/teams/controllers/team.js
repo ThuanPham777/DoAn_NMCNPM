@@ -141,6 +141,11 @@ exports.addTeamsInTournament = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    if (error.number === 50000) {
+      return res.status(400).json({
+        message: error.message, // Send the specific violation message from the trigger
+      });
+    }
     res.status(500).json({ error: error.message });
   }
 };
