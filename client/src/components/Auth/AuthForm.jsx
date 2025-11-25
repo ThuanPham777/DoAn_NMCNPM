@@ -38,9 +38,9 @@ const AuthForm = ({ isRegister }) => {
       dispatch(fetchUserInfo());
       console.log('result: ' + JSON.stringify(result));
       if (isRegister) {
-        alert(`Registration successful! Welcome, ${result.data.user.username}`);
+        alert(`Registration successful! Welcome, ${result.user.UserName}`);
       } else {
-        alert(`Login successful! Welcome back, ${result.data.user.username}`);
+        alert(`Login successful! Welcome back, ${result.user.UserName}`);
       }
 
       navigate(isRegister ? '/login' : '/');

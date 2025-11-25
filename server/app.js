@@ -1,14 +1,14 @@
 const express = require('express');
 const connectToDB = require('./config/db'); // Import database connection
-const authRoutes = require('./app/user/routes/auth');
-const tournamentRoutes = require('./app/tournament/routes/tournament');
-const teamRoutes = require('./app/teams/routes/team');
-const playerRoutes = require('./app/players/routes/player');
-const ruleRoutes = require('./app/rule/routes/rule');
-const scheduleRoutes = require('./app/schedules/routes/schedule');
-const matchRoutes = require('./app/matches/routes/match');
-const roundRoutes = require('./app/rounds/routes/round');
-const reportRoutes = require('./app/report/routes/reports');
+const authRoutes = require('./app/user/routes/auth.route');
+const tournamentRoutes = require('./app/tournament/routes/tournament.route');
+const teamRoutes = require('./app/teams/routes/team.route');
+const playerRoutes = require('./app/players/routes/player.route');
+const ruleRoutes = require('./app/rule/routes/rule.route');
+const scheduleRoutes = require('./app/schedules/routes/schedule.route');
+const matchRoutes = require('./app/matches/routes/match.route');
+const roundRoutes = require('./app/rounds/routes/round.route');
+const reportRoutes = require('./app/report/routes/report.route');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -30,7 +30,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 (async () => {
   let pool;
   try {
-    // Establish a connection to the SQL Server database
     pool = await connectToDB();
   } catch (err) {
     console.error('Database connection error:', err);

@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Card {
+  MatchID      Int
+  PlayerID     Int
+  RoundID      Int
+  TournamentID Int
+  CardTime     Int
+  CardType     Card_CardType
+  Match        Match         @relation(fields: [MatchID, RoundID, TournamentID], references: [MatchID, RoundID, TournamentID], onDelete: Cascade, map: "FK_Card_Match")
+  Player       Player        @relation(fields: [PlayerID], references: [PlayerID], onDelete: Cascade, map: "FK_Card_Player")
+
+  @@id([MatchID, RoundID, TournamentID, PlayerID, CardTime])
+  @@index([PlayerID], map: "FK_Card_Player")
+}
+
+model Listscore {
+  MatchID      Int
+  RoundID      Int
+  TournamentID Int
+  PlayerID     Int
+  ScoreTime    Int
+  ScoreType    Listscore_ScoreType
+  Match        Match               @relation(fields: [MatchID, RoundID, TournamentID], references: [MatchID, RoundID, TournamentID], onDelete: Cascade, map: "FK_Listsocre_Match")
+  Player       Player              @relation(fields: [PlayerID], references: [PlayerID], onDelete: Cascade, map: "FK_Listsocre_Player")
+
+  @@id([MatchID, RoundID, TournamentID, PlayerID, ScoreTime])
+  @@index([PlayerID], map: "FK_Listsocre_Player")
+}
+
+model Match {
+  MatchID                  Int
+  RoundID                  Int
+  TournamentID             Int
+  Team1ID                  Int?
+  Team2ID                  Int?
+  MatchDate                DateTime    @db.Date
+  Card                     Card[]
+  Listscore                Listscore[]
+  Round                    Round       @relation(fields: [RoundID, TournamentID], references: [RoundID, TournamentID], onDelete: Cascade, map: "FK_Match_Round")
+  Team_Match_Team1IDToTeam Team?       @relation("Match_Team1IDToTeam", fields: [Team1ID], references: [TeamID], map: "FK_Match_Team1")
+  Team_Match_Team2IDToTeam Team?       @relation("Match_Team2IDToTeam", fields: [Team2ID], references: [TeamID], map: "FK_Match_Team2")
+
+  @@id([MatchID, RoundID, TournamentID])
+  @@index([RoundID, TournamentID], map: "FK_Match_Round")
+  @@index([Team1ID], map: "FK_Match_Team1")
+  @@index([Team2ID], map: "FK_Match_Team2")
+}
+
+model Player {
+  PlayerID     Int               @id @default(autoincrement())
+  TeamID       Int?
+  DateOfBirth  DateTime          @db.Date
+  PlayerName   String            @db.VarChar(50)
+  JerseyNumber Int?
+  HomeTown     String?           @db.VarChar(50)
+  ProfileImg   String?           @db.VarChar(50)
+  PlayerType   Player_PlayerType
+  Card         Card[]
+  Listscore    Listscore[]
+  Team         Team?             @relation(fields: [TeamID], references: [TeamID], map: "FK_Player_Team")
+
+  @@index([TeamID], map: "FK_Player_Team")
+}
+
+model Round {
+  RoundID      Int
+  TournamentID Int
+  Match        Match[]
+  Tournament   Tournament @relation(fields: [TournamentID], references: [TournamentID], onDelete: Cascade, map: "FK_Round_Tournament")
+
+  @@id([RoundID, TournamentID])
+  @@index([TournamentID], map: "FK_Round_Tournament")
+}
+
+model Rule {
+  TournamentID      Int        @id
+  MaxTeam           Int
+  MinTeam           Int
+  MaxPlayer         Int
+  MinPlayer         Int
+  MaxForeignPlayer  Int?
+  MinAgePlayer      Int?
+  MaxAgePlayer      Int?
+  WinScore          Int?
+  LoseScore         Int?
+  DrawScore         Int?
+  MaxTimeScore      Int?
+  NumberOfTypeScore Int?
+  Priority          String?    @db.VarChar(50)
+  Tournament        Tournament @relation(fields: [TournamentID], references: [TournamentID], onDelete: Cascade, map: "FK_Rule_Tournament")
+}
+
+model Team {
+  TeamID                    Int                    @id @default(autoincrement())
+  TeamName                  String                 @db.VarChar(50)
+  Stadium                   String?                @db.VarChar(50)
+  Coach                     String?                @db.VarChar(50)
+  TeamLogo                  String?                @db.VarChar(50)
+  UserID                    Int?
+  Match_Match_Team1IDToTeam Match[]                @relation("Match_Team1IDToTeam")
+  Match_Match_Team2IDToTeam Match[]                @relation("Match_Team2IDToTeam")
+  Player                    Player[]
+  User                      User?                  @relation(fields: [UserID], references: [UserID], map: "FK_Team_User")
+  TeamAttendTournament      TeamAttendTournament[]
+
+  @@index([UserID], map: "FK_Team_User")
+}
+
+model TeamAttendTournament {
+  TeamID       Int
+  TournamentID Int
+  Team         Team       @relation(fields: [TeamID], references: [TeamID], onDelete: Cascade, map: "FK_TeamAttendTournament_Team")
+  Tournament   Tournament @relation(fields: [TournamentID], references: [TournamentID], onDelete: Cascade, map: "FK_TeamAttendTournament_Tournament")
+
+  @@id([TeamID, TournamentID])
+  @@index([TournamentID], map: "FK_TeamAttendTournament_Tournament")
+}
+
+model Tournament {
+  TournamentID         Int                    @id @default(autoincrement())
+  TournamentName       String                 @db.VarChar(50)
+  StartDate            DateTime               @db.Date
+  EndDate              DateTime?              @db.Date
+  TournamentLogo       String?                @db.VarChar(50)
+  Round                Round[]
+  Rule                 Rule?
+  TeamAttendTournament TeamAttendTournament[]
+}
+
+model User {
+  UserID   Int       @id @default(autoincrement())
+  UserName String    @db.VarChar(50)
+  Email    String    @unique(map: "Email") @db.VarChar(50)
+  Password String    @db.VarChar(255)
+  Role     User_Role
+  Team     Team[]
+}
+
+enum User_Role {
+  Admin
+  Manager
+  Guest
+}
+
+enum Listscore_ScoreType {
+  NORMAL @map("Bình thường")
+  OWN_GOAL   @map("Phản lưới")
+  PENALTY    @map("Phạt đền")
+}
+
+enum Card_CardType {
+  YELLOW_CARD @map("Thẻ vàng")
+  RED_CARD   @map("Thẻ đỏ")
+}
+
+enum Player_PlayerType {
+  DOMESTIC @map("Trong nước")
+  FOREIGN @map("Ngoài nước")
+}

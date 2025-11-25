@@ -1,8 +1,31 @@
-# React + Vite
+# Frontend (client)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ứng dụng frontend được xây dựng bằng Vite + React — giao diện quản lý giải đấu, đội, cầu thủ, lịch thi đấu...
 
-Currently, two official plugins are available:
+## Yêu cầu
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js (LTS) và npm hoặc yarn
+
+## Cài đặt & chạy
+
+1. Vào thư mục `client`:
+
+```bash
+cd client
+```
+
+2. Cài phụ thuộc:
+
+```bash
+npm install
+# hoặc
+# yarn install
+```
+
+3. Chạy môi trường phát triển:
+
+```bash
+npm run dev
+```
+
+Frontend mặc định chạy trên `http://localhost:5173` (với cấu hình Vite mặc định). API backend mặc định được cấu hình ở `http://localhost:3000` — nếu backend chạy trên cổng khác thì cập nhật URL API trong code (`client/src` hoặc biến môi trường).

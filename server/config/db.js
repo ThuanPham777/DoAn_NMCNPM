@@ -1,30 +1,22 @@
 // db.js
-require('dotenv').config(); // Load environment variables from .env file
-const sql = require('mssql');
+require('dotenv').config();
+const mysql = require('mysql2/promise');
 
-// Database configuration object
 const dbConfig = {
+  host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
   database: process.env.DB_NAME,
-  options: {
-    enableArithAbort: true,
-    trustServerCertificate: true,
-    trustedConnection: true,
-    instancename: 'SQLEXPRESS',
-  },
-  port: 1433,
+  port: process.env.DB_PORT || 3306,
 };
 
-// Function to establish a connection pool
 const connectToDB = async () => {
   try {
-    const pool = await sql.connect(dbConfig);
-    console.log('Connected to the database successfully');
-    return pool;
+    const connection = await mysql.createConnection(dbConfig);
+    console.log('Connected to MySQL successfully');
+    return connection;
   } catch (err) {
-    console.error('Database connection error:', err);
+    console.error('MySQL connection error:', err);
     throw err;
   }
 };
